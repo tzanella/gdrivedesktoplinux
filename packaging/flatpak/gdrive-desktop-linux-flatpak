@@ -1,0 +1,23 @@
+#!/bin/sh
+# Ponto de entrada do pacote Flatpak: sobe o daemon em segundo plano dentro do sandbox se ainda
+# não estiver ativo e inicia a bandeja ou abre a janela pedida.
+set -eu
+bin=$(cd "$(dirname "$0")" && pwd)
+
+if ! pgrep -u "$(id -u)" -x gdrive-desktop-linuxd >/dev/null 2>&1; then
+  "$bin/gdrive-desktop-linuxd" >/dev/null 2>&1 &
+  sleep 0.4
+fi
+
+case "${1:-}" in
+  --open|--dbus)
+    exec "$bin/gdrive-desktop-linux-ui" "$@"
+    ;;
+  status|pause|resume|about|logs|diagnostics|mcp|open-pointer|help|--help|-h|--version|-V)
+    exec "$bin/gdrive-desktop-linux" "$@"
+    ;;
+  *)
+    "$bin/gdrive-desktop-linux-tray" >/dev/null 2>&1 &
+    exec "$bin/gdrive-desktop-linux-ui" --open home
+    ;;
+esac

@@ -82,6 +82,7 @@ for file in "$repo"/packaging/desktop/*.desktop; do
   put "$file" "$share/applications/$(basename "$file")"
 done
 install_as 644 "$repo/packaging/mime/gdrive-desktop-linux.xml" "$share/mime/packages/gdrive-desktop-linux.xml"
+install_as 644 "$repo/packaging/flatpak/io.github.tzanella.GDriveDesktopLinux.metainfo.xml" "$share/metainfo/io.github.tzanella.GDriveDesktopLinux.metainfo.xml"
 # O ícone do app, nos tamanhos do tema (gerados por scripts/update-app-icon.py). O SVG de uma
 # instalação anterior sai: o tema o preferiria aos PNG.
 for file in "$repo"/assets/icons/hicolor/*/apps/*.png; do

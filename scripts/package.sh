@@ -70,7 +70,7 @@ dir="$work/$name-$version"
 mkdir -p "$dir/scripts" "$dir/packaging" "$dir/assets/icons" "$dir/integrations/gtk"
 cp -r "$work/stage/usr/bin" "$dir/"
 cp "$repo/scripts/install-dev.sh" "$dir/scripts/"
-cp -r "$repo/packaging/systemd" "$repo/packaging/dbus" "$repo/packaging/desktop" "$repo/packaging/mime" \
+cp -r "$repo/packaging/systemd" "$repo/packaging/dbus" "$repo/packaging/desktop" "$repo/packaging/mime" "$repo/packaging/flatpak" \
   "$dir/packaging/"
 cp -r "$repo/assets/icons/hicolor" "$dir/assets/icons/"
 cp "$repo/integrations/gtk/gdrive_desktop_linux_menu.py" "$dir/integrations/gtk/"

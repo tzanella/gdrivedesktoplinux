@@ -21,6 +21,7 @@ const FILES: &[&str] = &[
     "share/applications/io.github.tzanella.GDriveDesktopLinux.OpenPointer.desktop",
     "share/applications/io.github.tzanella.GDriveDesktopLinux.Uninstall.desktop",
     "share/mime/packages/gdrive-desktop-linux.xml",
+    "share/metainfo/io.github.tzanella.GDriveDesktopLinux.metainfo.xml",
     "share/icons/hicolor/48x48/apps/io.github.tzanella.GDriveDesktopLinux.png",
     "share/icons/hicolor/256x256/apps/io.github.tzanella.GDriveDesktopLinux.png",
     "share/gdrive-desktop-linux/icons/hicolor/scalable/status/gdl-synced.svg",

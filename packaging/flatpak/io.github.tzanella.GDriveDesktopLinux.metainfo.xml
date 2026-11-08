@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.tzanella.GDriveDesktopLinux</id>
+  <name>Google Drive para Linux</name>
+  <summary>Sincronize e monte seu Google Drive no Linux com arquivos sob demanda</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-only</project_license>
+  <developer id="io.github.tzanella">
+    <name>Túlio Zanella</name>
+  </developer>
+  <launchable type="desktop-id">io.github.tzanella.GDriveDesktopLinux.desktop</launchable>
+
+  <description>
+    <p>
+      Cliente de área de trabalho para o Google Drive no Linux, inspirado no Google Drive for Desktop.
+      Monta a sua conta como uma pasta local via FUSE 3, permitindo abrir arquivos sob demanda (Stream)
+      ou manter uma cópia completa no disco (Espelho).
+    </p>
+    <p>Principais recursos:</p>
+    <ul>
+      <li>Arquivos sob demanda (Stream) e modo Espelho completo para Meu Drive e Drives compartilhados</li>
+      <li>Backup de pastas do computador em pasta unificada com suporte a ignorar node_modules e subpastas específicas</li>
+      <li>Interface Material Design 3 responsiva com vetores animados e anel colorido do Google One para assinantes</li>
+      <li>Ícone na bandeja do sistema, pesquisa rápida global e menu de contexto para Nautilus, Nemo, Caja, Thunar e Dolphin</li>
+      <li>Atualização automática verificada por assinatura criptográfica minisign</li>
+    </ul>
+  </description>
+
+  <url type="homepage">https://github.com/tzanella/gdrive-desktop-linux</url>
+  <url type="bugtracker">https://github.com/tzanella/gdrive-desktop-linux/issues</url>
+  <url type="help">https://github.com/tzanella/gdrive-desktop-linux/blob/main/docs/ajuda.md</url>
+  <url type="vcs-browser">https://github.com/tzanella/gdrive-desktop-linux</url>
+
+  <branding>
+    <color type="primary" scheme_preference="light">#d3e3fd</color>
+    <color type="primary" scheme_preference="dark">#0842a0</color>
+  </branding>
+
+  <screenshots>
+    <screenshot type="default">
+      <caption>Janela principal com o status da sincronização e cartões de acesso rápido</caption>
+      <image>https://raw.githubusercontent.com/tzanella/gdrive-desktop-linux/main/docs/imagens/inicio.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Preferências de pastas do computador e exclusão de subpastas</caption>
+      <image>https://raw.githubusercontent.com/tzanella/gdrive-desktop-linux/main/docs/imagens/preferencias-computador.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Tela Sobre com verificação e atualização automática</caption>
+      <image>https://raw.githubusercontent.com/tzanella/gdrive-desktop-linux/main/docs/imagens/sobre.png</image>
+    </screenshot>
+  </screenshots>
+
+  <content_rating type="oars-1.1" />
+
+  <requires>
+    <display_length compare="ge">360</display_length>
+  </requires>
+
+  <recommends>
+    <control>pointing</control>
+    <control>keyboard</control>
+  </recommends>
+
+  <releases>
+    <release version="1.3.0-beta" date="2026-11-08">
+      <description>
+        <p>Interface Material 3 redesenhada com vetores animados estilo Google, atualização automática pelo app com verificação minisign e suporte a Flatpak.</p>
+      </description>
+    </release>
+    <release version="1.2.5-rev2" date="2026-11-06">
+      <description>
+        <p>Anel colorido do Google One no avatar para assinantes e atualização do identificador do aplicativo.</p>
+      </description>
+    </release>
+    <release version="1.2.5" date="2026-11-05">
+      <description>
+        <p>Opção para ignorar pastas node_modules, exclusão seletiva de subpastas e consolidação da pasta do computador no Drive.</p>
+      </description>
+    </release>
+  </releases>
+</component>
