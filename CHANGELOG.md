@@ -9,14 +9,16 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), e
 
 ## [1.3.0-beta] - 2026-11-08
 
-Interface renovada no padrão Material 3 / Google Drive, atualização integrada assinada ("Atualizar agora") e empacotamento Flatpak com preparação para o Flathub.
+Nova versão com interface renovada no padrão Material 3 / Google Drive, sistema de atualização integrada com assinatura criptográfica ("Atualizar agora"), exclusão seletiva de subpastas sincronizadas e correções visuais globais.
 
 ### Adicionado
 - **Atualizar agora:** quando sai uma versão nova, a notificação, o menu da bandeja e a tela Sobre oferecem **Atualizar agora** (baixa o pacote do seu formato, confere a assinatura do projeto, instala e reinicia o app na versão nova) ou **Depois** (volta a oferecer no dia seguinte).
 - **Releases assinados:** cada release traz o `SHA256SUMS.minisig`, que confere o `SHA256SUMS` com a chave pública do projeto (`minisign -Vm SHA256SUMS -P <chave>`, a chave está no README).
-- **Interface Material 3 / Google Drive:** redesign responsivo com superfícies tonais do Google Workspace, animações em transições de tela e estados de carregamento, formas geométricas vetoriais animadas do Google (no cabeçalho de sincronização, estados vazios e tela de boas-vindas) e alinhamento padronizado de todos os botões.
-- **Pacote Flatpak e suporte ao Flathub:** manifesto Flatpak (`packaging/flatpak/io.github.tzanella.GDriveDesktopLinux.yml`), metadados AppStream (`io.github.tzanella.GDriveDesktopLinux.metainfo.xml`), script `scripts/build-flatpak.sh` para gerar o bundle `.flatpak` e guia de submissão em `docs/flathub.md`.
-- Exclusão seletiva de subpastas (`ExcludedFolders`) e opção de ignorar `node_modules` (`IgnoreNodeModules`), removendo do Drive (para a lixeira) subpastas adicionadas à lista de exclusão.
+- **Interface Material 3 / Google Drive:** redesign responsivo com superfícies tonais do Google Workspace, animações fluidas em transições de tela e estados de carregamento, e formas geométricas vetoriais animadas do Google (no cabeçalho de sincronização, estados vazios e tela de boas-vindas).
+- **Alinhamento e padronização visual:** correção global no alinhamento de botões e ícones em todas as telas, novos estados visuais e feedback aprimorado de interação.
+- **Exclusão seletiva de pastas (`ExcludedFolders`):** opção para excluir subpastas específicas da sincronização com remoção automática (para a lixeira) caso a pasta já tenha subido anteriormente para o Drive.
+- **Ignorar `node_modules` (`IgnoreNodeModules`):** filtro para ignorar automaticamente diretórios de dependências locais sem enviar à nuvem.
+- **Anel Google One para assinantes:** anel visual de 4 cores (azul, vermelho, amarelo e verde) ao redor do avatar do usuário e no menu de conta para contas com mais de 20 GB de espaço contratado.
 
 ## [1.2.5-rev2] - 2026-11-06
 
