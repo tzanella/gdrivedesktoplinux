@@ -53,5 +53,4 @@ modules:
     sources:
       - type: dir
         path: ../..
-      # Em submissão ao Flathub, gere cargo-sources.json com flatpak-cargo-generator e inclua aqui:
-      # - cargo-sources.json
+      - generated-sources.json
