@@ -45,7 +45,9 @@ build_dir="$work/build"
 ostree_repo="$work/repo"
 
 # 1. Inicializa a árvore Flatpak
-flatpak build-init "$build_dir" "$app_id" org.gnome.Sdk org.gnome.Platform "$runtime"
+sdk="org.gnome.Sdk"
+flatpak info "${sdk}//${runtime}" >/dev/null 2>&1 || sdk="org.gnome.Platform"
+flatpak build-init "$build_dir" "$app_id" "$sdk" org.gnome.Platform "$runtime"
 
 # 2. Popula /app com os binários, ícones, .desktop, D-Bus e metainfo
 mkdir -p "$work/stage"
