@@ -4,15 +4,16 @@
 # dos Documentos Google), os tipos dos ponteiros, os ícones e o menu do botão direito nos
 # gerenciadores de arquivos GTK.
 #
-#   scripts/install-dev.sh [--prefix DIR] [--destdir DIR] [--from DIR] [--dry-run] [--no-activate]
+#   scripts/install-dev.sh [--prefix DIR] [--destdir DIR] [--from DIR] [--dry-run] [--no-activate] [--tarball]
 #
 # --from usa os programas já compilados em DIR (sem ele, compila com `cargo build --release`);
 # --dry-run só lista o que instalaria; --no-activate não avisa o systemd nem o D-Bus nem atualiza
 # os bancos de tipos e de aplicativos; --destdir grava em DIR/<prefixo> os arquivos que vão funcionar
-# em <prefixo> (para montar os pacotes; implica --no-activate).
+# em <prefixo> (para montar os pacotes; implica --no-activate); --tarball marca a instalação como
+# vinda do .tar.gz do release.
 set -eu
 repo=$(cd "$(dirname "$0")/.." && pwd)
-prefix="$HOME/.local" destdir="" from="" dry=false activate=true
+prefix="$HOME/.local" destdir="" from="" dry=false activate=true tarball=false
 while [ $# -gt 0 ]; do
   case "$1" in
     --prefix) prefix=$2; shift 2 ;;
@@ -20,6 +21,7 @@ while [ $# -gt 0 ]; do
     --from) from=$2; shift 2 ;;
     --dry-run) dry=true; shift ;;
     --no-activate) activate=false; shift ;;
+    --tarball) tarball=true; shift ;;
     *) echo "argumento desconhecido: $1" >&2; exit 2 ;;
   esac
 done
@@ -109,6 +111,11 @@ done
 
 # Os pacotes trazem um marcador do formato no lugar da lista (o gerenciador sabe o que é dele).
 if ! $dry && [ -z "$destdir" ]; then
+  if $tarball; then
+    : > "$share/gdrive-desktop-linux/tarball"
+    installed="$installed$share/gdrive-desktop-linux/tarball
+"
+  fi
   printf '%s' "$installed" > "$share/gdrive-desktop-linux/installed-files"
 fi
 

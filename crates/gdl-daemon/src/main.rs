@@ -3,6 +3,7 @@
 use std::process::ExitCode;
 use std::sync::Arc;
 
+use gdl_common::brand::DAEMON;
 use gdl_common::i18n;
 use gdl_common::paths::Paths;
 use gdl_daemon::daemon::Exit;
@@ -49,15 +50,29 @@ fn main() -> ExitCode {
 
 #[tokio::main]
 async fn serve() -> ExitCode {
+    // Antes de qualquer atualização trocar o arquivo: é este caminho que volta a rodar.
+    gdl_common::paths::startup_exe();
     let state_dir = Paths::from_env().state_dir;
     let (subscriber, log) = logging::subscriber(&state_dir, gdl_common::time::now_ms());
     if let Err(e) = tracing::subscriber::set_global_default(subscriber) {
         eprintln!("gdrive-desktop-linuxd: log indisponível: {e}");
     }
-    // `Restart` sobe o serviço de novo aqui mesmo, sem depender do systemd.
+    // Fora do systemd, `Restart` sobe o serviço de novo aqui mesmo.
     loop {
-        match run(&log).await {
+        let exit = run(&log).await;
+        if matches!(exit, Ok(Exit::Restart | Exit::Upgrade))
+            && std::env::var_os("INVOCATION_ID").is_some()
+        {
+            return restart_through_systemd();
+        }
+        match exit {
             Ok(Exit::Restart) => tracing::info!("reiniciando o serviço"),
+            // O programa no disco é o da versão nova: ele toma o lugar deste processo, com os
+            // mesmos argumentos.
+            Ok(Exit::Upgrade) => {
+                let error = gdl_common::relaunch::exec_startup_exe(None);
+                tracing::error!(erro = %error, "não deu para rodar a versão nova; reiniciando esta");
+            }
             Ok(Exit::Quit) => return ExitCode::SUCCESS,
             Err(e) => {
                 tracing::error!(erro = %e, "o serviço parou");
@@ -84,6 +99,12 @@ async fn run(log: &logging::LogHandle) -> Result<Exit, Box<dyn std::error::Error
         folder_timing: Default::default(),
         unmount_limit: gdl_daemon::daemon::UNMOUNT_LIMIT,
         updates: gdl_daemon::updates::UpdateCheck::github(),
+        install_kind: gdl_daemon::upgrade::install_kind(
+            gdl_common::paths::startup_exe()
+                .parent()
+                .unwrap_or(std::path::Path::new("/")),
+        ),
+        installer: Arc::new(gdl_daemon::upgrade::install::SystemInstaller),
     };
     let daemon = Daemon::new(config)?;
     daemon.set_log(log.clone());
@@ -100,6 +121,7 @@ async fn run(log: &logging::LogHandle) -> Result<Exit, Box<dyn std::error::Error
     }
     daemon.attach(conn.clone()).await?;
     daemon.offer_crash_reports().await;
+    daemon.announce_upgrade().await;
     daemon.watch_releases();
     // A conexão limitada (NetworkManager) e os dispositivos (UDisks2) vêm do barramento do
     // sistema.
@@ -137,4 +159,43 @@ async fn run(log: &logging::LogHandle) -> Result<Exit, Box<dyn std::error::Error
         .await?;
     conn.release_name(BUS_NAME).await?;
     Ok(exit)
+}
+
+/// Sob o systemd, o reinício passa por ele: a unidade é `Type=dbus`, e ele mata quem tomar o
+/// lugar deste processo depois que o nome some do D-Bus. Com o pedido aceito, quem sobe o
+/// serviço é o job de reinício; se não, a saída com erro faz o `Restart=on-failure` subir.
+fn restart_through_systemd() -> ExitCode {
+    tracing::info!("reiniciando o serviço pelo systemd");
+    match systemd_restart().status() {
+        Ok(status) if status.success() => ExitCode::SUCCESS,
+        done => {
+            tracing::error!(?done, "o systemd não aceitou o reinício");
+            ExitCode::FAILURE
+        }
+    }
+}
+
+fn systemd_restart() -> std::process::Command {
+    let mut command = std::process::Command::new("systemctl");
+    command.args([
+        "--user",
+        "--no-block",
+        "restart",
+        &format!("{DAEMON}.service"),
+    ]);
+    command
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn under_systemd_restarts_through_it() {
+        let command = systemd_restart();
+        assert_eq!(command.get_program(), "systemctl");
+        let unit = format!("{DAEMON}.service");
+        let args: Vec<_> = command.get_args().collect();
+        assert_eq!(args, ["--user", "--no-block", "restart", unit.as_str()]);
+    }
 }

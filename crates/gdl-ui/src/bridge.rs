@@ -38,6 +38,9 @@ pub type Emit = Arc<dyn Fn(&'static str, Value) + Send + Sync>;
 pub struct Bridge {
     service: ServiceProxy<'static>,
     up: AtomicBool,
+    /// O serviço voltou depois de uma queda e o relógio de `watch` ainda não tratou a volta
+    /// (qualquer chamada pode trazê-lo de volta, pela ativação do D-Bus).
+    returned: AtomicBool,
 }
 
 /// Os argumentos da chamada, um objeto JSON com os nomes dos parâmetros.
@@ -110,6 +113,7 @@ impl Bridge {
         Ok(Bridge {
             service: ServiceProxy::new(conn).await?,
             up: AtomicBool::new(true),
+            returned: AtomicBool::new(false),
         })
     }
 
@@ -253,6 +257,10 @@ impl Bridge {
             "verbose_logging" => j!(s.verbose_logging()),
             "set_verbose_logging" => j!(s.set_verbose_logging(a.bool("on")?)),
             "generate_diagnostics" => j!(s.generate_diagnostics()),
+            "service_version" => j!(s.service_version()),
+            "update_info" => j!(s.update_info()),
+            "start_update" => j!(s.start_update()),
+            "open_release" => j!(s.open_release()),
             "restart" => j!(s.restart()),
             "quit" => j!(s.quit()),
             _ => return Err(UiError::new("UnknownMethod", method)),
@@ -285,15 +293,19 @@ impl Bridge {
     fn settle<T>(&self, reply: Result<T, ServiceError>) -> Result<T, UiError> {
         let reply = reply.map_err(ui_error);
         let down = matches!(&reply, Err(e) if e.name == UNAVAILABLE);
-        self.up.store(!down, Ordering::Relaxed);
+        let was_up = self.up.swap(!down, Ordering::Relaxed);
+        if !was_up && !down {
+            self.returned.store(true, Ordering::Relaxed);
+        }
         reply
     }
 
     /// Repassa os sinais do serviço para `emit` enquanto a conexão durar.
     pub async fn forward_signals(&self, emit: Emit) -> zbus::Result<()> {
         let s = &self.service;
-        let (status, activity, notifications, preferences, folders, login) = futures_util::try_join!(
+        let (status, update, activity, notifications, preferences, folders, login) = futures_util::try_join!(
             s.receive_status_changed(),
+            s.receive_update_changed(),
             s.receive_activity_changed(),
             s.receive_notifications_changed(),
             s.receive_preferences_changed(),
@@ -309,6 +321,7 @@ impl Bridge {
         });
         let streams: Vec<BoxStream<'static, (&'static str, Value)>> = vec![
             status.map(named("status-changed")).boxed(),
+            update.map(named("update-changed")).boxed(),
             activity.map(named("activity-changed")).boxed(),
             notifications.map(named("notifications-changed")).boxed(),
             preferences.map(named("preferences-changed")).boxed(),
@@ -324,10 +337,24 @@ impl Bridge {
         Ok(())
     }
 
-    /// Enquanto o serviço estiver fora, tenta a cada `every`; quando ele volta, emite
-    /// `service-up` (as telas recarregam o que mostram). Quando o nome do serviço perde o dono,
-    /// emite `service-down` na hora (as telas mostram o aviso sem esperar uma chamada falhar).
-    pub async fn watch(self: Arc<Self>, every: Duration, emit: Emit) {
+    /// A versão do serviço, se ele for de outra versão que esta janela (ver
+    /// `gdl_common::relaunch::outdated_for`); `None` sem serviço ou na mesma versão.
+    pub async fn outdated_service(&self) -> Option<String> {
+        let version = self.service.service_version().await.ok()?;
+        gdl_common::relaunch::outdated_for(&version).then_some(version)
+    }
+
+    /// Enquanto o serviço estiver fora, tenta a cada `every`; quando ele volta (por esta tentativa
+    /// ou por uma chamada das telas), emite `service-up` (as telas recarregam o que mostram),
+    /// depois de passar a versão dele a `on_outdated` se for outra (uma atualização o trocou de
+    /// programa). Quando o nome do serviço perde o dono, emite `service-down` na hora (as telas
+    /// mostram o aviso sem esperar uma chamada falhar).
+    pub async fn watch(
+        self: Arc<Self>,
+        every: Duration,
+        emit: Emit,
+        on_outdated: impl Fn(String) + Send + 'static,
+    ) {
         let mut ticker = tokio::time::interval(every);
         ticker.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
         // Sem os avisos do barramento, a queda só aparece quando uma chamada falhar.
@@ -337,11 +364,13 @@ impl Bridge {
         loop {
             tokio::select! {
                 _ = ticker.tick() => {
-                    if self.is_up() {
-                        continue;
+                    if !self.is_up() {
+                        let _ = self.call("status", Value::Null).await;
                     }
-                    let _ = self.call("status", Value::Null).await;
-                    if self.is_up() {
+                    if self.returned.swap(false, Ordering::Relaxed) {
+                        if let Some(version) = self.outdated_service().await {
+                            on_outdated(version);
+                        }
                         emit("service-up", Value::Null);
                     }
                 }
@@ -387,7 +416,7 @@ mod tests {
     use std::sync::Mutex;
 
     use gdl_ipc::testing::{PrivateBus, p2p_pair};
-    use gdl_ipc::{BUS_NAME, OBJECT_PATH, SearchResult, Status};
+    use gdl_ipc::{BUS_NAME, OBJECT_PATH, SearchResult, Status, UpdateInfo};
     use zbus::object_server::SignalEmitter;
 
     use super::*;
@@ -429,8 +458,37 @@ mod tests {
             Ok(format!("{client_id}|{client_secret}|{expected}"))
         }
 
+        fn update_info(&self) -> UpdateInfo {
+            UpdateInfo {
+                version: "9.9.9".into(),
+                can_install: true,
+                step: "available".into(),
+            }
+        }
+
+        fn start_update(&self) -> Result<(), ServiceError> {
+            Err(ServiceError::Refused("updating".into()))
+        }
+
+        fn service_version(&self) -> String {
+            "99.0.0".into()
+        }
+
         #[zbus(signal)]
         async fn status_changed(emitter: &SignalEmitter<'_>) -> zbus::Result<()>;
+
+        #[zbus(signal)]
+        async fn update_changed(emitter: &SignalEmitter<'_>) -> zbus::Result<()>;
+    }
+
+    /// Espera (até 2 s) o primeiro evento chegar em `seen`.
+    async fn wait_seen(seen: &Mutex<Vec<&'static str>>) {
+        for _ in 0..200 {
+            if !seen.lock().unwrap().is_empty() {
+                return;
+            }
+            tokio::time::sleep(Duration::from_millis(10)).await;
+        }
     }
 
     async fn bridge_with_fake() -> (Connection, Bridge) {
@@ -543,13 +601,74 @@ mod tests {
             .await
             .unwrap();
 
-        for _ in 0..200 {
-            if !seen.lock().unwrap().is_empty() {
-                break;
-            }
-            tokio::time::sleep(Duration::from_millis(10)).await;
-        }
+        wait_seen(&seen).await;
         assert_eq!(*seen.lock().unwrap(), ["status-changed"]);
+    }
+
+    #[tokio::test]
+    async fn update_calls_and_signal_reach_the_window() {
+        let (server, bridge) = bridge_with_fake().await;
+        let info = bridge.call("update_info", json!({})).await.unwrap();
+        assert_eq!(info["version"], "9.9.9");
+        assert_eq!(info["can_install"], true);
+        let e = bridge.call("start_update", json!({})).await.unwrap_err();
+        assert_eq!(e.name, "Refused");
+
+        let seen = Arc::new(Mutex::new(Vec::new()));
+        let emit: Emit = Arc::new({
+            let seen = seen.clone();
+            move |name, _| seen.lock().unwrap().push(name)
+        });
+        bridge.forward_signals(emit).await.unwrap();
+        let iface = server
+            .object_server()
+            .interface::<_, FakeService>(OBJECT_PATH)
+            .await
+            .unwrap();
+        FakeService::update_changed(iface.signal_emitter())
+            .await
+            .unwrap();
+        wait_seen(&seen).await;
+        assert_eq!(*seen.lock().unwrap(), ["update-changed"]);
+    }
+
+    #[tokio::test]
+    async fn another_service_version_is_outdated() {
+        let (_server, bridge) = bridge_with_fake().await;
+        assert_eq!(bridge.outdated_service().await.as_deref(), Some("99.0.0"));
+
+        let bus = PrivateBus::start();
+        let alone = Bridge::new(&bus.connect().await).await.unwrap();
+        assert_eq!(alone.outdated_service().await, None, "sem serviço");
+    }
+
+    #[tokio::test]
+    async fn a_failed_call_also_counts_as_down() {
+        let bus = PrivateBus::start();
+        let bridge = Arc::new(Bridge::new(&bus.connect().await).await.unwrap());
+        let (tx, mut events) = tokio::sync::mpsc::unbounded_channel();
+        let emit: Emit = Arc::new(move |name, _| {
+            let _ = tx.send(name);
+        });
+        // O relógio já roda quando a queda aparece, numa chamada das telas (sem sinal do
+        // barramento).
+        tokio::spawn(
+            bridge
+                .clone()
+                .watch(Duration::from_millis(50), emit, |_| {}),
+        );
+        let e = bridge.call("status", Value::Null).await.unwrap_err();
+        assert_eq!(e.name, UNAVAILABLE);
+
+        let service = bus.connect().await;
+        service
+            .object_server()
+            .at(OBJECT_PATH, FakeService)
+            .await
+            .unwrap();
+        service.request_name(BUS_NAME).await.unwrap();
+        let event = tokio::time::timeout(Duration::from_secs(5), events.recv()).await;
+        assert_eq!(event.ok().flatten(), Some("service-up"));
     }
 
     #[tokio::test]
@@ -566,7 +685,15 @@ mod tests {
         let emit: Emit = Arc::new(move |name, _| {
             let _ = tx.send(name);
         });
-        tokio::spawn(bridge.clone().watch(Duration::from_millis(50), emit));
+        let (outdated_tx, mut outdated) = tokio::sync::mpsc::unbounded_channel();
+        let on_outdated = move |version| {
+            let _ = outdated_tx.send(version);
+        };
+        tokio::spawn(
+            bridge
+                .clone()
+                .watch(Duration::from_millis(50), emit, on_outdated),
+        );
         let service = bus.connect().await;
         service
             .object_server()
@@ -578,11 +705,22 @@ mod tests {
         let event = tokio::time::timeout(Duration::from_secs(5), up.recv()).await;
         assert_eq!(event.ok().flatten(), Some("service-up"));
         assert!(bridge.is_up());
+        // O serviço falso diz ser a 99.0.0: a janela seria trocada pelo programa novo.
+        assert_eq!(outdated.try_recv().ok().as_deref(), Some("99.0.0"));
 
         // O serviço sai: o aviso vem do barramento, sem nenhuma chamada falhar antes.
         service.release_name(BUS_NAME).await.unwrap();
         let event = tokio::time::timeout(Duration::from_secs(5), up.recv()).await;
         assert_eq!(event.ok().flatten(), Some("service-down"));
         assert!(!bridge.is_up());
+
+        // Volta (numa atualização, outro programa) e uma tela chama antes do relógio: a
+        // volta ainda confere a versão e avisa as telas.
+        service.request_name(BUS_NAME).await.unwrap();
+        let _ = bridge.call("status", Value::Null).await;
+        assert!(bridge.is_up(), "a chamada já achou o serviço");
+        let event = tokio::time::timeout(Duration::from_secs(5), up.recv()).await;
+        assert_eq!(event.ok().flatten(), Some("service-up"));
+        assert_eq!(outdated.try_recv().ok().as_deref(), Some("99.0.0"));
     }
 }

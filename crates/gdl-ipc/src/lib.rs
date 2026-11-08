@@ -135,6 +135,27 @@ pub struct Status {
     pub current_percent: i32,
 }
 
+/// Resposta de `UpdateInfo`: a versão nova oferecida e onde está a atualização.
+#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize, Type)]
+pub struct UpdateInfo {
+    /// `X.Y.Z`; vazio sem versão nova.
+    pub version: String,
+    /// O app baixa e instala sozinho ("Atualizar agora"); senão, só "Ver novidades".
+    pub can_install: bool,
+    /// Um de `update_step`.
+    pub step: String,
+}
+
+/// Os valores de `UpdateInfo::step`.
+pub mod update_step {
+    /// Parada: há (ou não) uma versão oferecida.
+    pub const AVAILABLE: &str = "available";
+    pub const DOWNLOADING: &str = "downloading";
+    /// O `pkexec` está pedindo a senha.
+    pub const WAITING_PASSWORD: &str = "waiting-password";
+    pub const INSTALLING: &str = "installing";
+}
+
 /// Um aviso do histórico (`Notifications`), o mais novo primeiro.
 #[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize, Type)]
 pub struct NotificationItem {
@@ -681,6 +702,16 @@ pub trait Service {
     fn move_lost_and_found(&self, account: &str, dest: &str) -> Result<u32, ServiceError>;
     /// Grava o pacote de diagnóstico (`.tar.gz`) na Área de trabalho e devolve o caminho.
     fn generate_diagnostics(&self) -> Result<String, ServiceError>;
+    /// A versão do serviço que está rodando (`X.Y.Z`): a bandeja e a janela se reiniciam quando
+    /// ela muda. Um método só para isso, para nunca mudar de assinatura entre as versões.
+    fn service_version(&self) -> Result<String, ServiceError>;
+    /// A versão nova oferecida e o passo da atualização.
+    fn update_info(&self) -> Result<UpdateInfo, ServiceError>;
+    /// "Atualizar agora": começa e volta logo (o andamento vem em `UpdateChanged`); sem versão
+    /// nova, `NotFound`; já atualizando, `Refused`.
+    fn start_update(&self) -> Result<(), ServiceError>;
+    /// "Ver novidades": abre a página da última versão oferecida.
+    fn open_release(&self) -> Result<(), ServiceError>;
     /// Reinicia o serviço (para as preferências que pedem isso).
     fn restart(&self) -> Result<(), ServiceError>;
     /// Encerra o serviço; a bandeja sai junto ao ver `Quitting`.
@@ -690,6 +721,9 @@ pub trait Service {
     fn login_finished(&self, ok: bool, email: &str, error: &str) -> zbus::Result<()>;
     #[zbus(signal)]
     fn status_changed(&self) -> zbus::Result<()>;
+    /// A versão oferecida ou o passo da atualização mudou.
+    #[zbus(signal)]
+    fn update_changed(&self) -> zbus::Result<()>;
     /// A atividade mudou (no máximo um a cada 250 ms).
     #[zbus(signal)]
     fn activity_changed(&self) -> zbus::Result<()>;

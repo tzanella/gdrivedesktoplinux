@@ -2,8 +2,9 @@
 
 use std::os::unix::fs::{DirBuilderExt, PermissionsExt};
 use std::path::{Path, PathBuf};
+use std::sync::OnceLock;
 
-const APP: &str = "gdrive-desktop-linux";
+use crate::brand::PACKAGE;
 
 /// Cria a pasta (e as que faltam no caminho) só para o dono e restringe a que já existia: o
 /// conteúdo do Drive e o banco não ficam legíveis por outros usuários.
@@ -15,9 +16,24 @@ pub fn create_private_dir(path: &Path) -> std::io::Result<()> {
     std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o700))
 }
 
+/// O caminho deste executável na partida, guardado antes de qualquer atualização: depois que um
+/// pacote troca os arquivos, `current_exe` (`/proc/self/exe`) passa a apontar o arquivo antigo
+/// (`(deleted)`).
+pub fn startup_exe() -> &'static Path {
+    static EXE: OnceLock<PathBuf> = OnceLock::new();
+    EXE.get_or_init(|| {
+        std::env::current_exe().unwrap_or_else(|_| {
+            std::env::args_os()
+                .next()
+                .map(PathBuf::from)
+                .unwrap_or_default()
+        })
+    })
+}
+
 /// A pasta deste executável (os outros programas do app ficam ao lado).
 pub fn exe_dir() -> Option<PathBuf> {
-    Some(std::env::current_exe().ok()?.parent()?.to_path_buf())
+    Some(startup_exe().parent()?.to_path_buf())
 }
 
 /// Os relatórios de falha dos programas (`<state_dir>/crashes`).
@@ -79,6 +95,8 @@ pub struct Paths {
     pub config_dir: PathBuf,
     pub data_dir: PathBuf,
     pub state_dir: PathBuf,
+    /// O que dá para baixar de novo (`$XDG_CACHE_HOME/<pacote>`): a atualização baixada.
+    pub cache_dir: PathBuf,
     pub etc_dir: PathBuf,
 }
 
@@ -116,10 +134,11 @@ impl Paths {
             config_home: config.into(),
             data_home: data.into(),
             thumbnails_dir: cache.join("thumbnails"),
-            config_dir: config.join(APP),
-            data_dir: data.join(APP),
-            state_dir: state.join(APP),
-            etc_dir: etc.join(APP),
+            config_dir: config.join(PACKAGE),
+            data_dir: data.join(PACKAGE),
+            state_dir: state.join(PACKAGE),
+            cache_dir: cache.join(PACKAGE),
+            etc_dir: etc.join(PACKAGE),
         }
     }
 }
@@ -127,6 +146,14 @@ impl Paths {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn startup_exe_is_fixed_and_absolute() {
+        let first = startup_exe();
+        assert!(first.is_absolute(), "{first:?}");
+        assert!(first.exists(), "{first:?}");
+        assert_eq!(startup_exe(), first);
+    }
 
     #[test]
     fn user_dir_reads_user_dirs_dirs() {
@@ -181,19 +208,11 @@ mod tests {
     #[test]
     fn for_test_puts_everything_under_root() {
         let p = Paths::for_test(Path::new("/tmp/x"));
-        assert_eq!(
-            p.config_dir,
-            PathBuf::from("/tmp/x/config/gdrive-desktop-linux")
-        );
-        assert_eq!(
-            p.data_dir,
-            PathBuf::from("/tmp/x/data/gdrive-desktop-linux")
-        );
-        assert_eq!(
-            p.state_dir,
-            PathBuf::from("/tmp/x/state/gdrive-desktop-linux")
-        );
-        assert_eq!(p.etc_dir, PathBuf::from("/tmp/x/etc/gdrive-desktop-linux"));
+        let under = |kind: &str| PathBuf::from(format!("/tmp/x/{kind}/{PACKAGE}"));
+        assert_eq!(p.config_dir, under("config"));
+        assert_eq!(p.data_dir, under("data"));
+        assert_eq!(p.state_dir, under("state"));
+        assert_eq!(p.etc_dir, under("etc"));
         assert_eq!(p.thumbnails_dir, PathBuf::from("/tmp/x/cache/thumbnails"));
     }
 
