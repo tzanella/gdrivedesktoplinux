@@ -1,7 +1,7 @@
 // Janela principal: cabeçalho com o estado da sincronização, menu da conta, "Mais opções", o menu
 // lateral com as visões e a área da visão escolhida. Atualiza com os eventos da ponte.
 
-import { attempt, el, icon, stylesheet, toast } from '../components.js';
+import { attempt, el, googleHeroShapes, icon, statusGraphic, stylesheet, toast } from '../components.js';
 import { accountButton, accountMenu } from './home/account.js';
 import { headerFor, shownStatus, withoutAccount } from './home/model.js';
 import { moreMenu, runArg } from './home/more.js';
@@ -57,6 +57,7 @@ export async function render(root, ctx) {
 }
 
 function layout({ api, t }) {
+  ui.graphic = statusGraphic('synced');
   ui.title = el('h1', { class: 'header-title' });
   ui.subtitle = el('p', { class: 'header-subtitle' });
   ui.syncNow = el('button', {
@@ -85,6 +86,7 @@ function layout({ api, t }) {
   ui.header = el(
     'section',
     { class: 'header', tabindex: '-1', 'aria-live': 'polite' },
+    ui.graphic,
     el('div', { class: 'header-text' }, ui.title, ui.subtitle),
     ui.syncNow,
     ui.pause,
@@ -191,6 +193,11 @@ function updateHeader() {
   const { t, locale } = home.ctx;
   const status = home.status;
   const header = headerFor(status, Date.now(), locale);
+  if (ui.header.dataset.state !== status.state) {
+    const nextGraphic = statusGraphic(status.paused ? 'paused' : status.state);
+    ui.graphic.replaceWith(nextGraphic);
+    ui.graphic = nextGraphic;
+  }
   ui.title.textContent = t(...header.title);
   ui.subtitle.textContent = header.subtitle ? t(...header.subtitle) : '';
   ui.syncNow.hidden = withoutAccount(status.state);
@@ -240,6 +247,7 @@ async function showView() {
       el(
         'div',
         { class: 'card signed-out' },
+        googleHeroShapes(),
         el('p', {}, t(`home-${state}`)),
         state === 'signed-out'
           ? el('button', { class: 'filled', onclick: () => api.openScreen('onboarding') }, t('sign-in'))

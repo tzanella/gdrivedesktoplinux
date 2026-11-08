@@ -2,7 +2,7 @@
 // de serviço fora do ar (que some sozinho quando ele volta, recarregando a tela).
 
 import { api, prefValue } from './api.js';
-import { el, icon } from './components.js';
+import { el, googleHeroShapes, googleSpinner, icon } from './components.js';
 import { I18n, parseFtl } from './i18n.js';
 import { currentScreen } from './router.js';
 
@@ -13,6 +13,10 @@ const READY = new Set([
 ]);
 
 const screen = currentScreen(location.search);
+// Tela inicial de carregamento com os vetores e o spinner colorido do Google.
+const root = el('div', { id: 'screen' }, el('div', { class: 'pending' }, googleHeroShapes(), googleSpinner()));
+document.body.append(root);
+
 // Os textos e o código da tela chegam juntos.
 const [{ locale, source }, module] = await Promise.all([
   api.strings(),
@@ -21,7 +25,6 @@ const [{ locale, source }, module] = await Promise.all([
 const i18n = new I18n(parseFtl(source), locale);
 document.documentElement.lang = locale;
 
-const root = el('div', { id: 'screen' });
 const banner = el(
   'div',
   { class: 'banner', role: 'status', hidden: true },
@@ -29,7 +32,7 @@ const banner = el(
   el('span', {}, i18n.t('service-unavailable')),
   el('button', { onclick: () => show() }, i18n.t('action-retry')),
 );
-document.body.append(banner, root);
+document.body.prepend(banner);
 
 const context = { api, locale, t: i18n.t };
 

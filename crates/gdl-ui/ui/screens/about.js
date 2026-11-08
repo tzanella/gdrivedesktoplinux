@@ -1,7 +1,7 @@
 // Sobre: versão, licença, o aviso de cliente não oficial, os links do projeto e os softwares de
 // terceiros (as bibliotecas Rust, geradas no build, e os recursos do front-end).
 
-import { el, stylesheet } from '../components.js';
+import { el, googleHeroShapes, stylesheet } from '../components.js';
 import { updateBanner } from './about/model.js';
 
 const PROJECT = 'https://github.com/tzanella/gdrive-desktop-linux';
@@ -48,7 +48,9 @@ export async function render(root, { api, t }) {
     el(
       'main',
       { class: 'about' },
-      el('img', { class: 'about-logo', src: 'icons/app.png', alt: '' }),
+      el('div', { class: 'about-hero' },
+        el('img', { class: 'about-logo', src: 'icons/app.png', alt: '' }),
+        googleHeroShapes()),
       el('h1', {}, t('about-name')),
       el('p', { class: 'about-version' }, t('about-version', { version })),
       update,

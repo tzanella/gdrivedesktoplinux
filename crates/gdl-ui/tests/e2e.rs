@@ -58,7 +58,9 @@ impl Session {
     async fn screenshot(&self) -> Vec<u8> {
         self.eval(
             "return document.fonts.ready.then(() => \
-             Promise.all(document.getAnimations().map(a => a.finished)))",
+             Promise.all(document.getAnimations()\
+             .filter(a => a.effect?.getTiming().iterations !== Infinity)\
+             .map(a => a.finished)))",
         )
         .await;
         let png = self.request(reqwest::Method::GET, "screenshot", None).await;

@@ -1,4 +1,4 @@
-/* Base comum das telas. */
+/* Base comum das telas — Material 3 / Google Drive Desktop. */
 
 *,
 *::before,
@@ -10,6 +10,7 @@ html,
 body {
   margin: 0;
   height: 100%;
+  overflow: hidden;
 }
 
 body {
@@ -21,9 +22,34 @@ body {
   cursor: default;
 }
 
+#screen {
+  height: 100%;
+  animation: m3-fade-up var(--md-duration-medium) var(--md-ease-emphasized);
+}
+
+/* Barra de rolagem fina estilo Google Workspace. */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--md-on-surface-variant) 28%, transparent);
+  border-radius: var(--md-shape-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--md-on-surface-variant) 45%, transparent);
+}
+
 h1 {
   font: var(--md-title-large);
   margin: 0;
+  letter-spacing: -0.01em;
 }
 
 p {
@@ -39,20 +65,40 @@ p {
   height: 20px;
   fill: currentColor;
   flex: none;
+  display: block;
 }
 
+/* Botões alinhados com precisão (ícone + rótulo centralizados no mesmo eixo). */
 button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 36px;
   font: var(--md-label-large);
-  border: none;
+  line-height: 20px;
+  vertical-align: middle;
+  white-space: nowrap;
+  border: 1px solid transparent;
   border-radius: var(--md-shape-full);
-  padding: 10px 24px;
+  padding: 7px 20px;
   cursor: pointer;
   background: transparent;
   color: var(--md-primary);
+  transition:
+    background-color var(--md-duration-fast) var(--md-ease-standard),
+    color var(--md-duration-fast) var(--md-ease-standard),
+    box-shadow var(--md-duration-fast) var(--md-ease-standard),
+    transform 100ms var(--md-ease-standard),
+    border-color var(--md-duration-fast) var(--md-ease-standard);
 }
 
-button:hover {
-  background: color-mix(in srgb, var(--md-primary) 8%, transparent);
+button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--md-primary) 10%, transparent);
+}
+
+button:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
 button:focus-visible {
@@ -63,15 +109,74 @@ button:focus-visible {
 button.filled {
   background: var(--md-primary);
   color: var(--md-on-primary);
+  box-shadow: var(--md-shadow-sm);
 }
 
-button.filled:hover {
-  background: color-mix(in srgb, var(--md-primary) 92%, var(--md-on-primary));
+button.filled:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--md-primary) 90%, var(--md-on-primary));
+  box-shadow: var(--md-shadow-md);
+}
+
+button.tonal {
+  background: var(--md-secondary-container);
+  color: var(--md-on-secondary-container);
+}
+
+button.tonal:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--md-secondary-container) 88%, var(--md-on-secondary-container));
+}
+
+button.text {
+  min-height: 34px;
+  padding: 6px 14px;
+}
+
+button.danger {
+  background: var(--md-error);
+  color: var(--md-on-error);
+}
+
+button.danger:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--md-error) 90%, var(--md-on-error));
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: default;
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+button.filled:disabled,
+button.tonal:disabled {
+  background: color-mix(in srgb, var(--md-on-surface) 12%, transparent);
+  color: var(--md-on-surface);
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  min-height: 40px;
+  padding: 0;
+  flex: none;
+  border-radius: 50%;
+  color: var(--md-on-surface-variant);
+}
+
+.icon-button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--md-on-surface) 8%, transparent);
+  color: var(--md-on-surface);
 }
 
 .actions {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
@@ -85,6 +190,7 @@ button.filled:hover {
 
 .crumbs button:disabled {
   color: var(--md-on-surface);
+  font-weight: 600;
   opacity: 1;
 }
 
@@ -92,76 +198,37 @@ button.filled:hover {
 .save-footer {
   align-items: center;
   padding: 12px 24px;
+  background: var(--md-surface-container-low);
   border-top: 1px solid var(--md-outline-variant);
 }
 
 .pending-changes {
   margin-right: auto;
   color: var(--md-on-surface-variant);
+  font: var(--md-label-large);
 }
 
 .field-error {
   margin: 0;
   color: var(--md-error);
+  font: var(--md-label-medium);
 }
 
 .field-error:empty {
   display: none;
 }
 
-/* Serviço fora do ar. */
+/* Serviço fora do ar / faixa de status. */
 .banner {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 16px;
+  padding: 10px 16px;
   background: var(--md-error-container);
   color: var(--md-on-error-container);
+  animation: m3-fade-up var(--md-duration-fast) var(--md-ease-standard);
 }
 
-.pending {
-  display: grid;
-  place-items: center;
-  height: 100%;
-  padding: 24px;
-  color: var(--md-on-surface-variant);
-}
-
-button.tonal {
-  background: var(--md-secondary-container);
-  color: var(--md-on-secondary-container);
-}
-
-button.text {
-  padding: 8px 12px;
-}
-
-button.danger {
-  background: var(--md-error);
-  color: var(--md-on-error);
-}
-
-button:disabled {
-  opacity: 0.38;
-  cursor: default;
-  background: transparent;
-}
-
-button.filled:disabled {
-  background: color-mix(in srgb, var(--md-on-surface) 12%, transparent);
-  color: var(--md-on-surface);
-}
-
-.icon-button {
-  display: inline-grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  padding: 0;
-  color: var(--md-on-surface-variant);
-}
-
-/* Faixa informativa (não de erro). */
 .banner.info {
   background: var(--md-secondary-container);
   color: var(--md-on-secondary-container);
@@ -172,18 +239,32 @@ button.filled:disabled {
   color: inherit;
 }
 
-/* Diálogos. */
+.pending {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  height: 100%;
+  padding: 24px;
+  color: var(--md-on-surface-variant);
+}
+
+/* Diálogos Material 3. */
 .dialog {
-  border: none;
+  border: 1px solid var(--md-outline-variant);
   border-radius: 28px;
   padding: 24px;
-  max-width: min(560px, 90vw);
-  background: var(--md-surface-container-high);
+  max-width: min(560px, 92vw);
+  background: var(--md-surface-elevated);
   color: var(--md-on-surface);
+  box-shadow: var(--md-shadow-lg);
+  animation: m3-pop-in var(--md-duration-medium) var(--md-ease-emphasized);
 }
 
 .dialog::backdrop {
-  background: rgb(0 0 0 / 32%);
+  background: rgb(0 0 0 / 40%);
+  backdrop-filter: blur(2px);
 }
 
 .dialog-title {
@@ -202,14 +283,26 @@ button.filled:disabled {
 .choices {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .choice,
 .sure {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   align-items: flex-start;
+  cursor: pointer;
+}
+
+.choice input[type='checkbox'],
+.choice input[type='radio'],
+.sure input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  margin: 2px 0 0;
+  accent-color: var(--md-primary);
+  cursor: pointer;
+  flex: none;
 }
 
 .sure {
@@ -219,14 +312,29 @@ button.filled:disabled {
 /* Campos de texto e listas de escolha. */
 input[type='text'],
 input[type='number'],
+input[type='password'],
+input[type='search'],
 textarea,
 select {
   font: var(--md-body-large);
-  padding: 8px 12px;
+  padding: 9px 14px;
   border: 1px solid var(--md-outline);
   border-radius: var(--md-shape-small);
-  background: var(--md-surface);
+  background: var(--md-surface-elevated);
   color: var(--md-on-surface);
+  transition:
+    border-color var(--md-duration-fast) var(--md-ease-standard),
+    box-shadow var(--md-duration-fast) var(--md-ease-standard);
+}
+
+input[type='text']:focus,
+input[type='number']:focus,
+input[type='password']:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--md-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--md-primary) 22%, transparent);
 }
 
 input:disabled,
@@ -236,8 +344,10 @@ select:disabled {
 
 /* Selo de estado ao lado de um nome ("Atual"). */
 .chip {
+  display: inline-flex;
+  align-items: center;
   margin-left: 8px;
-  padding: 0 8px;
+  padding: 2px 10px;
   border-radius: var(--md-shape-full);
   background: var(--md-secondary-container);
   color: var(--md-on-secondary-container);
@@ -250,65 +360,114 @@ select:disabled {
   color: var(--md-on-surface-variant);
 }
 
-/* Cartões. */
+/* Cartões estilo Google Workspace / Material 3. */
 .card {
+  position: relative;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 8px;
-  padding: 16px;
+  padding: 18px 20px;
   border-radius: var(--md-shape-medium);
-  background: var(--md-surface-container-low);
+  border: 1px solid var(--md-outline-variant);
+  background: var(--md-surface-elevated);
+  box-shadow: var(--md-shadow-sm);
+  transition:
+    transform var(--md-duration-fast) var(--md-ease-standard),
+    box-shadow var(--md-duration-fast) var(--md-ease-standard),
+    border-color var(--md-duration-fast) var(--md-ease-standard);
+}
+
+.card:hover {
+  border-color: color-mix(in srgb, var(--md-primary) 35%, var(--md-outline-variant));
+  box-shadow: var(--md-shadow-md);
 }
 
 .card h2 {
   font: var(--md-title-medium);
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-/* Menus suspensos. */
+.card > button.text {
+  margin-top: auto;
+  margin-left: -10px;
+}
+
+/* Efeito shimmer para valores carregando nos cartões. */
+.card p:empty {
+  width: 65%;
+  height: 18px;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    var(--md-surface-container) 25%,
+    var(--md-surface-container-high) 50%,
+    var(--md-surface-container) 75%
+  );
+  background-size: 200% 100%;
+  animation: g-shimmer 1.2s ease-in-out 2;
+}
+
+/* Menus suspensos Material 3. */
 .menu {
   position: fixed;
   z-index: 10;
-  min-width: 200px;
-  padding: 8px 0;
-  border-radius: var(--md-shape-small);
-  background: var(--md-surface-container);
-  box-shadow: 0 2px 6px rgb(0 0 0 / 20%);
+  min-width: 220px;
+  padding: 8px;
+  border-radius: var(--md-shape-medium);
+  border: 1px solid var(--md-outline-variant);
+  background: var(--md-surface-elevated);
+  box-shadow: var(--md-shadow-lg);
   display: flex;
   flex-direction: column;
+  gap: 2px;
+  transform-origin: top right;
+  animation: m3-pop-in var(--md-duration-fast) var(--md-ease-emphasized);
 }
 
 .menu button {
-  border-radius: 0;
+  justify-content: flex-start;
+  border-radius: var(--md-shape-small);
   text-align: left;
-  padding: 10px 16px;
+  padding: 9px 14px;
+  min-height: 38px;
   color: var(--md-on-surface);
   font: var(--md-body-medium);
+  width: 100%;
+}
+
+.menu button:hover:not(:disabled) {
+  background: var(--md-surface-container);
 }
 
 .menu hr {
   border: none;
   border-top: 1px solid var(--md-outline-variant);
-  margin: 8px 0;
+  margin: 6px 0;
   width: 100%;
 }
 
-/* Avisos curtos. */
+/* Avisos curtos (toast). */
 .toast {
   position: fixed;
   left: 50%;
-  bottom: 16px;
+  bottom: 20px;
   transform: translateX(-50%);
-  padding: 12px 16px;
-  border-radius: 4px;
+  padding: 12px 20px;
+  border-radius: var(--md-shape-full);
   background: var(--md-on-surface);
   color: var(--md-surface);
+  font: var(--md-label-large);
+  box-shadow: var(--md-shadow-lg);
   z-index: 20;
+  animation: m3-toast-in var(--md-duration-medium) var(--md-ease-spring);
 }
 
-/* Tela de escolha numa lista (Drives compartilhados, Adicionar atalho): o texto e a lista (que
-   rola, `.pick-list`) no alto, o rodapé com os botões embaixo. */
+/* Tela de escolha numa lista (Drives compartilhados, Adicionar atalho). */
 .pick-screen {
   display: flex;
   flex-direction: column;
@@ -335,7 +494,7 @@ select:disabled {
   min-height: 64px;
 }
 
-/* Listas de itens (nome cortado com reticências) e paginação. */
+/* Listas de itens e paginação. */
 .list {
   list-style: none;
   margin: 0;
@@ -347,14 +506,21 @@ select:disabled {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 10px 0;
+  padding: 12px 8px;
   border-bottom: 1px solid var(--md-outline-variant);
+  border-radius: var(--md-shape-small);
+  transition: background-color var(--md-duration-fast) var(--md-ease-standard);
+}
+
+.list li:hover {
+  background: color-mix(in srgb, var(--md-on-surface) 4%, transparent);
 }
 
 .list li > div:first-child {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  flex: 1;
 }
 
 .name {
@@ -367,12 +533,12 @@ select:disabled {
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 12px;
-  padding-top: 8px;
+  padding-top: 10px;
 }
 
-/* Pastas do computador (Preferências e "Pastas conectadas") e dispositivos: uma linha por item,
-   com o menu ou os botões à direita. */
+/* Pastas do computador e dispositivos. */
 .local-folders,
 .devices {
   list-style: none;
@@ -385,9 +551,17 @@ select:disabled {
 .device {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 0;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 8px;
   border-bottom: 1px solid var(--md-outline-variant);
+  border-radius: var(--md-shape-small);
+  transition: background-color var(--md-duration-fast) var(--md-ease-standard);
+}
+
+.local-folder:hover,
+.device:hover {
+  background: color-mix(in srgb, var(--md-on-surface) 4%, transparent);
 }
 
 .local-folder .field,
@@ -395,6 +569,7 @@ select:disabled {
   flex: 1;
   display: flex;
   flex-direction: column;
+  gap: 2px;
   min-width: 0;
 }
 
@@ -402,3 +577,160 @@ select:disabled {
   color: var(--md-error);
 }
 
+/* Vetores e formas animadas estilo Google / Material 3. */
+.g-vector-scene {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.g-vector-svg {
+  display: block;
+  overflow: visible;
+}
+
+.g-shape-float-1 {
+  transform-origin: center;
+  animation: g-float 2.4s ease-in-out 2;
+}
+
+.g-shape-float-2 {
+  transform-origin: center;
+  animation: g-float 2.8s ease-in-out 2 reverse;
+}
+
+.g-shape-spin {
+  transform-origin: center;
+  animation: g-morph-rotate 1.4s var(--md-ease-emphasized) 1;
+}
+
+/* Spinner circular de 4 cores do Google para carregamento e espera. */
+.g-spinner {
+  width: 36px;
+  height: 36px;
+  animation: g-spin 1.2s linear 3;
+}
+
+.g-spinner circle {
+  fill: none;
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-dasharray: 80, 200;
+  stroke-dashoffset: 0;
+  animation:
+    g-dash 1.2s ease-in-out 3,
+    g-colors 2.4s ease-in-out 2;
+}
+
+/* Animações Material 3. */
+@keyframes m3-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes m3-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes m3-toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 14px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
+@keyframes g-float {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-4px) scale(1.04);
+  }
+}
+
+@keyframes g-morph-rotate {
+  from {
+    transform: rotate(-28deg) scale(0.84);
+    opacity: 0;
+  }
+  to {
+    transform: rotate(0deg) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes g-spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes g-dash {
+  0% {
+    stroke-dasharray: 1, 200;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 90, 200;
+    stroke-dashoffset: -35px;
+  }
+  100% {
+    stroke-dasharray: 90, 200;
+    stroke-dashoffset: -124px;
+  }
+}
+
+@keyframes g-colors {
+  0%,
+  100% {
+    stroke: var(--g-blue);
+  }
+  25% {
+    stroke: var(--g-red);
+  }
+  50% {
+    stroke: var(--g-yellow);
+  }
+  75% {
+    stroke: var(--g-green);
+  }
+}
+
+@keyframes g-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}

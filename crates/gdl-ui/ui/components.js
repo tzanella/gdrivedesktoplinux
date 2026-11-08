@@ -13,15 +13,185 @@ export function el(tag, props = {}, ...children) {
   return node;
 }
 
+// Cria um elemento SVG no namespace correto.
+export function svgEl(tag, attrs = {}, ...children) {
+  const node = document.createElementNS(SVG, tag);
+  for (const [key, value] of Object.entries(attrs)) {
+    if (value !== false && value != null) node.setAttribute(key, String(value));
+  }
+  node.append(...children.flat());
+  return node;
+}
+
 // Um símbolo do `icons/sprite.svg`.
 export function icon(name) {
-  const svg = document.createElementNS(SVG, 'svg');
-  svg.setAttribute('class', 'icon');
-  svg.setAttribute('aria-hidden', 'true');
-  const use = document.createElementNS(SVG, 'use');
-  use.setAttribute('href', `icons/sprite.svg#${name}`);
-  svg.append(use);
-  return svg;
+  const use = svgEl('use', { href: `icons/sprite.svg#${name}` });
+  return svgEl('svg', { class: 'icon', 'aria-hidden': 'true' }, use);
+}
+
+// Spinner circular animado de 4 cores estilo Google.
+export function googleSpinner() {
+  return svgEl(
+    'svg',
+    { class: 'g-spinner', viewBox: '25 25 50 50', 'aria-hidden': 'true' },
+    svgEl('circle', { cx: 50, cy: 50, r: 20 }),
+  );
+}
+
+// Vetor animado estilo Google Material 3 para o cabeçalho de status (muda conforme o estado).
+export function statusGraphic(state = 'synced') {
+  const isError = state === 'error' || state === 'quota-full';
+  const isSyncing = state === 'syncing' || state === 'checking' || state === 'starting';
+  const isPaused = state === 'paused';
+
+  const badgeFill = isError
+    ? 'var(--g-red-soft)'
+    : isPaused
+      ? 'var(--g-yellow-soft)'
+      : isSyncing
+        ? 'var(--g-blue-soft)'
+        : 'var(--g-green-soft)';
+
+  const accentStroke = isError
+    ? 'var(--g-red)'
+    : isPaused
+      ? 'var(--g-yellow)'
+      : isSyncing
+        ? 'var(--g-blue)'
+        : 'var(--g-green)';
+
+  // Forma orgânica recortada (cookie Material 3) de fundo + formas orbitais Google.
+  const centerGlyph = isError
+    ? svgEl('path', {
+      d: 'M24 16v9M24 29.5h.02',
+      stroke: accentStroke,
+      'stroke-width': 3,
+      'stroke-linecap': 'round',
+      fill: 'none',
+    })
+    : isPaused
+      ? svgEl('path', {
+        d: 'M21 18v12M27 18v12',
+        stroke: accentStroke,
+        'stroke-width': 3,
+        'stroke-linecap': 'round',
+        fill: 'none',
+      })
+      : isSyncing
+        ? svgEl('path', {
+          class: 'g-shape-spin',
+          d: 'M17 24a7 7 0 0 1 12-4.9M31 24a7 7 0 0 1-12 4.9',
+          stroke: accentStroke,
+          'stroke-width': 2.8,
+          'stroke-linecap': 'round',
+          fill: 'none',
+        })
+        : svgEl('path', {
+          d: 'M18.5 24.5l3.8 3.8 7.5-7.8',
+          stroke: accentStroke,
+          'stroke-width': 3,
+          'stroke-linecap': 'round',
+          'stroke-linejoin': 'round',
+          fill: 'none',
+        });
+
+  return el(
+    'span',
+    { class: 'g-vector-scene status-graphic', 'aria-hidden': 'true' },
+    svgEl(
+      'svg',
+      { class: 'g-vector-svg', width: 48, height: 48, viewBox: '0 0 48 48' },
+      // Pílula azul decorativa flutuante (topo direito).
+      svgEl('rect', {
+        class: 'g-shape-float-1',
+        x: 34,
+        y: 5,
+        width: 9,
+        height: 9,
+        rx: 4.5,
+        fill: 'var(--g-blue)',
+        opacity: '0.85',
+      }),
+      // Losango amarelo suave (baixo esquerdo).
+      svgEl('rect', {
+        class: 'g-shape-float-2',
+        x: 5,
+        y: 33,
+        width: 8,
+        height: 8,
+        rx: 2.5,
+        transform: 'rotate(20 9 37)',
+        fill: 'var(--g-yellow)',
+        opacity: '0.9',
+      }),
+      // Ponto vermelho/verde (topo esquerdo).
+      svgEl('circle', {
+        class: 'g-shape-float-2',
+        cx: 9,
+        cy: 11,
+        r: 3.2,
+        fill: isError ? 'var(--g-red)' : 'var(--g-green)',
+        opacity: '0.8',
+      }),
+      // Escudo orgânico central Material 3.
+      svgEl('path', {
+        class: 'g-shape-spin',
+        d: 'M24 6C28.5 6 32.2 8.2 35 11C37.8 13.8 40 17.5 40 22V26C40 30.5 37.8 34.2 35 37C32.2 39.8 28.5 42 24 42C19.5 42 15.8 39.8 13 37C10.2 34.2 8 30.5 8 26V22C8 17.5 10.2 13.8 13 11C15.8 8.2 19.5 6 24 6Z',
+        fill: badgeFill,
+      }),
+      centerGlyph,
+    ),
+  );
+}
+
+// Ilustração vetorial geométrica de 4 cores estilo Google Drive para estados vazios, login e Sobre.
+export function googleHeroShapes() {
+  return el(
+    'div',
+    { class: 'g-vector-scene g-hero-shapes', 'aria-hidden': 'true' },
+    svgEl(
+      'svg',
+      { class: 'g-vector-svg', width: 120, height: 68, viewBox: '0 0 120 68' },
+      svgEl('rect', {
+        class: 'g-shape-float-1',
+        x: 10,
+        y: 16,
+        width: 34,
+        height: 34,
+        rx: 12,
+        transform: 'rotate(-10 27 33)',
+        fill: 'var(--g-blue-soft)',
+      }),
+      svgEl('circle', {
+        class: 'g-shape-float-2',
+        cx: 60,
+        cy: 34,
+        r: 22,
+        fill: 'var(--g-green-soft)',
+      }),
+      svgEl('rect', {
+        class: 'g-shape-float-1',
+        x: 78,
+        y: 18,
+        width: 30,
+        height: 30,
+        rx: 15,
+        fill: 'var(--g-yellow-soft)',
+      }),
+      // Triângulo estilizado remetendo às 3 barras do Google Drive.
+      svgEl('path', {
+        class: 'g-shape-spin',
+        d: 'M54 20L66 20L74 34L68 44L46 44L54 20Z',
+        fill: 'none',
+        stroke: 'var(--g-blue)',
+        'stroke-width': 2.5,
+        'stroke-linejoin': 'round',
+      }),
+      svgEl('circle', { cx: 26, cy: 32, r: 5, fill: 'var(--g-blue)' }),
+      svgEl('circle', { cx: 93, cy: 33, r: 5, fill: 'var(--g-yellow)' }),
+      svgEl('circle', { cx: 60, cy: 14, r: 3.5, fill: 'var(--g-red)' }),
+    ),
+  );
 }
 
 // Uma caixa de seleção ou opção com o texto ao lado (`.choice`).
@@ -92,8 +262,6 @@ let closeOpenMenu = null;
 export function popupMenu(anchor, items) {
   closeOpenMenu?.();
   const menu = el('div', { class: 'menu', role: 'menu' });
-  // Recalcula a posição quando o conteúdo muda de tamanho (o menu da conta alarga quando chegam
-  // a foto e o nome): senão ele sai pela borda da janela.
   const place = () => {
     const box = anchor.getBoundingClientRect();
     const left = Math.min(box.left, window.innerWidth - menu.offsetWidth - 8);

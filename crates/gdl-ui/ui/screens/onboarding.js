@@ -2,7 +2,7 @@
 // Continuar. A lógica dos passos fica em `onboarding/model.js`; aqui, o DOM e as chamadas.
 
 import { prefValue } from '../api.js';
-import { attempt, card, choice, el, errorText, stylesheet, toast, toastError } from '../components.js';
+import { attempt, card, choice, el, errorText, googleHeroShapes, googleSpinner, stylesheet, toast, toastError } from '../components.js';
 import { formatSize } from '../format.js';
 import { screenArg } from '../router.js';
 import { GUIDE, SLOW_LOGIN_MS, TROUBLES, actions, firstState, nextStep, slowLogin, stepsFor, summaryRows } from './onboarding/model.js';
@@ -218,6 +218,7 @@ const STEPS = {
       : [];
     return [
       title(t('onboarding-waiting-title')),
+      el('div', { class: 'waiting-hero' }, googleSpinner(), googleHeroShapes()),
       el('p', {}, t('onboarding-waiting-text')),
       el('p', {}, t('onboarding-waiting-unverified')),
       el('p', {}, t('onboarding-waiting-other')),
@@ -231,7 +232,7 @@ const STEPS = {
 
   intro({ t }) {
     const block = (name) => card(t(`onboarding-intro-${name}-title`), el('p', {}, t(`onboarding-intro-${name}-text`)));
-    return [title(t('onboarding-intro-title')), el('div', { class: 'blocks' }, ['stream', 'sync', 'offline'].map(block))];
+    return [googleHeroShapes(), title(t('onboarding-intro-title')), el('div', { class: 'blocks' }, ['stream', 'sync', 'offline'].map(block))];
   },
 
   files({ api, t }, state) {

@@ -1,6 +1,7 @@
-/* Tokens do Material 3 (cores do esquema a partir do azul #3b78d8, tipografia e formas). As cores
-   têm as duas versões em `light-dark()`: valem as do sistema (`prefers-color-scheme`), salvo se
-   `data-theme` no <html> (preferência `UITheme`) forçar uma delas. */
+/* Tokens do Material 3 / Google Workspace (cores do esquema inspiradas no Google Drive,
+   tipografia, elevação, movimento e formas). As cores têm as duas versões em `light-dark()`:
+   valem as do sistema (`prefers-color-scheme`), salvo se `data-theme` no <html> (preferência
+   `UITheme`) forçar uma delas. */
 
 @font-face {
   font-family: 'Inter';
@@ -11,35 +12,76 @@
 
 :root {
   color-scheme: light dark;
-  --md-primary: light-dark(#2f5fae, #adc6ff);
-  --md-on-primary: light-dark(#ffffff, #002e69);
-  --md-primary-container: light-dark(#d8e2ff, #0f4794);
-  --md-on-primary-container: light-dark(#001a42, #d8e2ff);
-  --md-secondary-container: light-dark(#dce2f9, #3c4758);
-  --md-on-secondary-container: light-dark(#141b2c, #dce2f9);
-  --md-error: light-dark(#ba1a1a, #ffb4ab);
-  --md-on-error: light-dark(#ffffff, #690005);
-  --md-error-container: light-dark(#ffdad6, #93000a);
-  --md-on-error-container: light-dark(#410002, #ffdad6);
-  --md-surface: light-dark(#f9f9ff, #111318);
-  --md-surface-container-low: light-dark(#f3f3fa, #1a1b20);
-  --md-surface-container: light-dark(#ededf4, #1e1f25);
-  --md-surface-container-high: light-dark(#e7e8ee, #282a2f);
-  --md-on-surface: light-dark(#1a1b20, #e2e2e9);
-  --md-on-surface-variant: light-dark(#44474f, #c5c6d0);
-  --md-outline: light-dark(#757780, #8f9099);
-  --md-outline-variant: light-dark(#c5c6d0, #44474f);
 
-  --md-font: 'Inter', system-ui, sans-serif;
+  /* Cores da marca Google (usadas nos vetores animados, status e anel Google One). */
+  --g-blue: light-dark(#1a73e8, #8ab4f8);
+  --g-red: light-dark(#ea4335, #f28b82);
+  --g-yellow: light-dark(#fbbc04, #fdd663);
+  --g-green: light-dark(#34a853, #81c995);
+  --g-blue-soft: light-dark(#d3e3fd, #0842a0);
+  --g-red-soft: light-dark(#fce8e6, #5c1915);
+  --g-yellow-soft: light-dark(#fef7e0, #523a04);
+  --g-green-soft: light-dark(#ceead6, #0d5223);
+
+  /* Paleta Material 3 / Google Drive. */
+  --md-primary: light-dark(#0b57d0, #a8c7fa);
+  --md-on-primary: light-dark(#ffffff, #062e6f);
+  --md-primary-container: light-dark(#d3e3fd, #0842a0);
+  --md-on-primary-container: light-dark(#041e49, #d3e3fd);
+  --md-secondary-container: light-dark(#c2e7ff, #004a77);
+  --md-on-secondary-container: light-dark(#001d35, #c2e7ff);
+  --md-error: light-dark(#b3261e, #f2b8b5);
+  --md-on-error: light-dark(#ffffff, #601410);
+  --md-error-container: light-dark(#f9dedc, #8c1d18);
+  --md-on-error-container: light-dark(#410e0b, #f9dedc);
+
+  /* Superfícies em camadas estilo Google Drive Workspace. */
+  --md-surface: light-dark(#f8fafd, #131314);
+  --md-surface-elevated: light-dark(#ffffff, #1e1f20);
+  --md-surface-container-low: light-dark(#f0f4f9, #1e1f20);
+  --md-surface-container: light-dark(#e9eef6, #282a2c);
+  --md-surface-container-high: light-dark(#dde3ea, #333537);
+  --md-on-surface: light-dark(#1f1f1f, #e3e3e3);
+  --md-on-surface-variant: light-dark(#444746, #c4c7c5);
+  --md-outline: light-dark(#747775, #8e918f);
+  --md-outline-variant: light-dark(#dfe3e7, #37393b);
+
+  /* Sombras sutis Material 3. */
+  --md-shadow-sm: light-dark(
+    0 1px 2px rgb(0 0 0 / 6%),
+    0 1px 3px rgb(0 0 0 / 35%)
+  );
+  --md-shadow-md: light-dark(
+    0 4px 12px rgb(11 87 208 / 8%),
+    0 6px 16px rgb(0 0 0 / 45%)
+  );
+  --md-shadow-lg: light-dark(
+    0 8px 24px rgb(0 0 0 / 12%),
+    0 10px 28px rgb(0 0 0 / 55%)
+  );
+
+  /* Tipografia. */
+  --md-font: 'Inter', system-ui, -apple-system, sans-serif;
   --md-body-medium: 400 14px/20px var(--md-font);
-  --md-body-large: 400 16px/24px var(--md-font);
-  --md-title-medium: 500 16px/24px var(--md-font);
-  --md-title-large: 400 22px/28px var(--md-font);
+  --md-body-large: 400 15px/22px var(--md-font);
+  --md-title-medium: 600 15px/22px var(--md-font);
+  --md-title-large: 600 20px/28px var(--md-font);
+  --md-label-medium: 500 12px/16px var(--md-font);
   --md-label-large: 500 14px/20px var(--md-font);
 
-  --md-shape-small: 8px;
-  --md-shape-medium: 12px;
+  /* Raios de borda Material 3. */
+  --md-shape-small: 10px;
+  --md-shape-medium: 16px;
+  --md-shape-large: 24px;
   --md-shape-full: 999px;
+
+  /* Curvas de animação Material 3 Expressive. */
+  --md-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --md-ease-emphasized: cubic-bezier(0.22, 1, 0.36, 1);
+  --md-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --md-duration-fast: 150ms;
+  --md-duration-medium: 260ms;
+  --md-duration-slow: 420ms;
 }
 
 :root[data-theme='light'] {

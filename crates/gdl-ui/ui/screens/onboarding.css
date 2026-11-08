@@ -1,17 +1,19 @@
-/* Primeiro uso: a lista de passos à esquerda e o passo atual à direita. */
+/* Primeiro uso: a lista de passos à esquerda e o passo atual à direita — Material 3. */
 
 .onboarding {
   display: grid;
-  grid-template-columns: 168px 1fr;
+  grid-template-columns: 196px 1fr;
   height: 100vh;
+  background: var(--md-surface);
 }
 
 .steps {
   margin: 0;
-  padding: 24px 16px;
+  padding: 28px 18px;
   list-style: none;
   counter-reset: step;
   background: var(--md-surface-container-low);
+  border-right: 1px solid var(--md-outline-variant);
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -22,27 +24,39 @@
 .steps li {
   counter-increment: step;
   display: flex;
-  gap: 8px;
+  gap: 10px;
   align-items: center;
+  transition: color var(--md-duration-fast) var(--md-ease-standard);
 }
 
 .steps li::before {
   content: counter(step);
   flex: none;
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   display: grid;
   place-items: center;
-  border: 1px solid var(--md-outline);
+  border: 1.5px solid var(--md-outline);
   font: var(--md-label-large);
+  transition:
+    background-color var(--md-duration-fast) var(--md-ease-standard),
+    border-color var(--md-duration-fast) var(--md-ease-standard),
+    color var(--md-duration-fast) var(--md-ease-standard);
 }
 
-.steps li.done::before,
+.steps li.done::before {
+  content: '✓';
+  background: var(--g-green-soft);
+  border-color: var(--g-green);
+  color: var(--g-green);
+}
+
 .steps li[aria-current='step']::before {
   background: var(--md-primary);
   border-color: var(--md-primary);
   color: var(--md-on-primary);
+  box-shadow: var(--md-shadow-sm);
 }
 
 .steps li[aria-current='step'] {
@@ -54,26 +68,40 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
+  background: var(--md-surface-elevated);
 }
 
 /* O conteúdo rola (o guia do Client ID é longo); os botões ficam sempre à vista. */
 .step-body {
   flex: 1;
   overflow-y: auto;
-  padding: 24px 24px 0;
+  padding: 28px 28px 8px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
+  animation: m3-fade-up var(--md-duration-medium) var(--md-ease-emphasized);
 }
 
 .step > .actions {
-  padding: 16px 24px 24px;
+  padding: 16px 28px 24px;
+  border-top: 1px solid var(--md-outline-variant);
+  background: var(--md-surface-container-low);
 }
 
 .step-body > button.text,
 .step-body > button.tonal,
 .guide-part > button {
   align-self: flex-start;
+}
+
+.waiting-hero {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  border-radius: var(--md-shape-medium);
+  background: var(--md-surface-container-low);
+  border: 1px solid var(--md-outline-variant);
 }
 
 .guide {
@@ -94,6 +122,7 @@
 
 .guide-part h2::before {
   content: counter(part) '. ';
+  color: var(--md-primary);
 }
 
 .guide-part p {
@@ -103,6 +132,7 @@
 .copy-row {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
@@ -112,11 +142,12 @@
 }
 
 .copy-row code {
-  flex: 1;
+  flex: 1 1 180px;
   overflow-wrap: anywhere;
-  padding: 6px 8px;
+  padding: 8px 12px;
   border-radius: var(--md-shape-small);
-  background: var(--md-surface-container-high);
+  background: var(--md-surface-container);
+  border: 1px solid var(--md-outline-variant);
   font: var(--md-body-medium);
   font-family: monospace;
 }
@@ -124,6 +155,7 @@
 .troubles summary {
   cursor: pointer;
   font: var(--md-label-large);
+  color: var(--md-primary);
 }
 
 .troubles dt {
@@ -139,14 +171,14 @@
 .field {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   font: var(--md-label-large);
 }
 
 .field input,
 .login-url {
   font: var(--md-body-large);
-  padding: 10px 12px;
+  padding: 10px 14px;
   border: 1px solid var(--md-outline);
   border-radius: var(--md-shape-small);
   background: var(--md-surface);
@@ -176,9 +208,10 @@
 
 .command {
   margin: 0;
-  padding: 10px 12px;
+  padding: 12px 14px;
   border-radius: var(--md-shape-small);
-  background: var(--md-surface-container-high);
+  background: var(--md-surface-container);
+  border: 1px solid var(--md-outline-variant);
   font: var(--md-body-medium);
   font-family: monospace;
   white-space: pre-wrap;
@@ -191,22 +224,53 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
+}
+
+.suggested-folders li {
+  padding: 12px 14px;
+  border-radius: var(--md-shape-small);
+  border: 1px solid var(--md-outline-variant);
+  background: var(--md-surface-container-low);
 }
 
 .summary {
   display: grid;
   grid-template-columns: max-content 1fr;
-  gap: 8px 24px;
-  margin: 16px 0 0;
+  gap: 10px 24px;
+  margin: 12px 0 0;
+  padding: 16px;
+  border-radius: var(--md-shape-medium);
+  background: var(--md-surface-container-low);
+  border: 1px solid var(--md-outline-variant);
 }
 
 .summary dt {
   color: var(--md-on-surface-variant);
+  font-weight: 500;
 }
 
 .summary dd {
   margin: 0;
   white-space: pre-line;
   overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+  .onboarding {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  .steps {
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 12px 16px;
+    border-right: none;
+    border-bottom: 1px solid var(--md-outline-variant);
+  }
+
+  .steps li {
+    white-space: nowrap;
+  }
 }
