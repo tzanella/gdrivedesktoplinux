@@ -144,7 +144,7 @@
         ${
           next
             ? `<a href="${next.id}/"><div class="lbl">${T("next")} →</div><div class="ttl">${label(next)}</div></a>`
-            : `<a href="https://github.com/tzanella/gdrive-desktop-linux" target="_blank" rel="noopener"><div class="lbl">${T("next")} →</div><div class="ttl">GitHub</div></a>`
+            : `<a href="https://github.com/tzanella/gdrivedesktoplinux" target="_blank" rel="noopener"><div class="lbl">${T("next")} →</div><div class="ttl">GitHub</div></a>`
         }
       </div>`;
   }

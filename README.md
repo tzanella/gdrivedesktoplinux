@@ -1,6 +1,6 @@
 # GDrive Desktop — Site
 
-Site estático do [GDrive Desktop Linux](https://github.com/tzanella/gdrive-desktop-linux),
+Site estático do [GDrive Desktop Linux](https://github.com/tzanella/gdrivedesktoplinux),
 publicado no GitHub Pages a partir da branch `gh-pages`.
 
 ## Estrutura

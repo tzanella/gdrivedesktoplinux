@@ -358,7 +358,55 @@
   }
 
   /* ---------------------------------------------------------
-     13. Boot
+     13. Dynamic GitHub Releases Fetcher
+     --------------------------------------------------------- */
+  async function initReleases() {
+    const container = $("#dynamic-downloads");
+    if (!container) return;
+    try {
+      const res = await fetch("https://api.github.com/repos/tzanella/gdrivedesktoplinux/releases/latest");
+      if (!res.ok) throw new Error("Status " + res.status);
+      const data = await res.json();
+      const assets = data.assets || [];
+      if (!assets.length) throw new Error("No assets found");
+
+      container.innerHTML = "";
+      const tagBadge = document.createElement("div");
+      tagBadge.className = "w-full text-center text-xs font-semibold text-gdrive-blue mb-1";
+      tagBadge.textContent = "Última versão: " + (data.tag_name || data.name || "1.3.1");
+      container.appendChild(tagBadge);
+
+      const icons = {
+        flatpak: "📦 Flatpak",
+        deb: "🐧 .deb",
+        rpm: "🎩 .rpm",
+        zst: "🏹 Arch",
+        tar: "🗜️ .tar.gz"
+      };
+
+      assets.forEach((asset) => {
+        const name = asset.name;
+        if (name.endsWith(".minisig") || name === "SHA256SUMS") return;
+        let label = name;
+        if (name.endsWith(".flatpak")) label = icons.flatpak;
+        else if (name.endsWith(".deb")) label = icons.deb;
+        else if (name.endsWith(".rpm")) label = icons.rpm;
+        else if (name.endsWith(".pkg.tar.zst")) label = icons.zst;
+        else if (name.endsWith(".tar.gz")) label = icons.tar;
+
+        const btn = document.createElement("a");
+        btn.href = asset.browser_download_url;
+        btn.className = "inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-white transition hover:bg-white/10 hover:border-white/20 hover:scale-105";
+        btn.innerHTML = `<span>${label}</span> <span class="text-[10px] text-slate-400">(${Math.round(asset.size / (1024 * 1024))} MB)</span>`;
+        container.appendChild(btn);
+      });
+    } catch (err) {
+      container.innerHTML = `<span class="text-xs text-slate-400">Acesse diretamente os pacotes no <a href="https://github.com/tzanella/gdrivedesktoplinux/releases/latest" class="text-gdrive-blue hover:underline">GitHub Releases</a>.</span>`;
+    }
+  }
+
+  /* ---------------------------------------------------------
+     14. Boot
      --------------------------------------------------------- */
   function boot() {
     initLocale();
@@ -373,6 +421,7 @@
     initMarquee();
     initCounters();
     initAnchors();
+    initReleases();
     movePill();
     setTimeout(movePill, 300);
     if (document.fonts && document.fonts.ready) {
