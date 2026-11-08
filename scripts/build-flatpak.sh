@@ -36,7 +36,11 @@ if [ -z "$runtime" ]; then
       break
     fi
   done
-  runtime=${runtime:-48}
+  if [ -z "$runtime" ]; then
+    flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
+    flatpak install -y --noninteractive flathub org.gnome.Platform//48 2>/dev/null || true
+    runtime="48"
+  fi
 fi
 
 work=$(mktemp -d)
