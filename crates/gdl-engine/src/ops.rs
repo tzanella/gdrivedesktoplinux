@@ -240,11 +240,18 @@ impl Engine {
         Ok(())
     }
 
-    /// Esvaziar a lixeira: o que só estava na lixeira daqui (nunca subiu) é apagado; o que está
-    /// na lixeira do Drive continua lá.
+    /// Esvaziar a lixeira: o que só estava na lixeira daqui (nunca subiu) é apagado; na API real
+    /// do Google Drive, também remove definitivamente da nuvem o item que estava na lixeira.
     pub async fn empty_from_trash(&self, id: &ItemId) -> Result<()> {
         match self.store.get(id)? {
             Some(item) if is_local_id(id) && item.trashed => self.forget_local(&item).await,
+            Some(item) if item.trashed && self.client.is_real_drive() => {
+                let _ = self.client.delete_file(&id.0).await;
+                self.cache.discard(id).await?;
+                self.store.remove_item(id)?;
+                let _ = self.store.remove_activity_by_item(&id.0);
+                Ok(())
+            }
             _ => Ok(()),
         }
     }

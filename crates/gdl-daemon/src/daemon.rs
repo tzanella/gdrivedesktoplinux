@@ -583,6 +583,7 @@ impl Daemon {
         let cache = self.prefs().content_cache_path.clone();
         set_user_preferences(&self.config.paths, &parsed).map_err(config_error)?;
         self.preferences_saved().await?;
+        self.spawn_cleanup_if_needed().await;
         let deferred = self.reopen_if_cache_moved(cache).await;
         Ok(deferred || parsed.iter().any(|(key, _)| needs_restart(key)))
     }
@@ -592,8 +593,34 @@ impl Daemon {
         let cache = self.prefs().content_cache_path.clone();
         reset_user_preferences(&self.config.paths).map_err(failed)?;
         self.preferences_saved().await?;
+        self.spawn_cleanup_if_needed().await;
         self.reopen_if_cache_moved(cache).await;
         Ok(())
+    }
+
+    async fn spawn_cleanup_if_needed(self: &Arc<Self>) {
+        if self.prefs().keep_cloud_copy_on_delete {
+            return;
+        }
+        let folder_accounts: Vec<_> = self
+            .accounts
+            .lock()
+            .await
+            .iter()
+            .map(|account| folders::FolderAccount {
+                email: account.email.clone(),
+                engine: account.engine.clone(),
+                runners: account.folders.clone(),
+                shutdown: account.shutdown.clone(),
+                mount: account.mount_point.clone(),
+            })
+            .collect();
+        for fa in folder_accounts {
+            let daemon = self.clone();
+            tokio::spawn(async move {
+                let _ = daemon.consolidate_computer_folders(&fa).await;
+            });
+        }
     }
 
     /// `ContentCachePath` mudou (era `before`): sem reiniciar o serviço, para as contas, muda o
@@ -641,10 +668,12 @@ impl Daemon {
         let metered_changed = self.prefs().pause_syncing_on_metered_connection
             != prefs.pause_syncing_on_metered_connection;
         let ignore_nm = prefs.ignore_node_modules;
+        let keep_cloud = prefs.keep_cloud_copy_on_delete;
         let excluded: Vec<PathBuf> = prefs.excluded_folders.iter().map(PathBuf::from).collect();
         *self.prefs.write().unwrap_or_else(|e| e.into_inner()) = Arc::new(prefs);
         for account in self.accounts.lock().await.iter() {
             account.folders.set_ignore_node_modules(ignore_nm);
+            account.folders.set_keep_cloud_copy(keep_cloud);
             account.folders.set_excluded_folders(excluded.clone());
         }
         if metered_changed {

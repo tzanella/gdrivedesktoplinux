@@ -126,6 +126,7 @@ pub struct FolderSync {
     screen: Option<Screen>,
     progress: Arc<Mutex<FolderProgress>>,
     ignore_node_modules: AtomicBool,
+    keep_cloud_copy: AtomicBool,
     excluded_folders: Mutex<Vec<PathBuf>>,
 }
 
@@ -156,6 +157,7 @@ impl FolderSync {
             screen: None,
             progress: Arc::new(Mutex::new(FolderProgress::default())),
             ignore_node_modules: AtomicBool::new(false),
+            keep_cloud_copy: AtomicBool::new(false),
             excluded_folders: Mutex::default(),
         }
     }
@@ -177,6 +179,21 @@ impl FolderSync {
 
     pub fn ignore_node_modules(&self) -> bool {
         self.ignore_node_modules.load(Ordering::Relaxed)
+    }
+
+    pub fn with_keep_cloud_copy(self, on: bool) -> FolderSync {
+        self.keep_cloud_copy.store(on, Ordering::Relaxed);
+        self
+    }
+
+    pub fn set_keep_cloud_copy(&self, on: bool) {
+        if self.keep_cloud_copy.swap(on, Ordering::Relaxed) != on {
+            self.wake.notify_one();
+        }
+    }
+
+    pub fn keep_cloud_copy(&self) -> bool {
+        self.keep_cloud_copy.load(Ordering::Relaxed)
     }
 
     pub fn with_excluded_folders(self, paths: Vec<PathBuf>) -> FolderSync {
@@ -670,7 +687,7 @@ impl FolderSync {
                 },
             );
         }
-        let local = v.locals.get(rel).copied();
+        let mut local = v.locals.get(rel).copied();
         let remote = v.remotes.get(rel);
         let base = v.bases.get(rel);
         // O md5 local só é lido quando a decisão depende dele (ver `Side::File`).
@@ -682,7 +699,14 @@ impl FolderSync {
                 }
         });
         let md5 = match need_md5 {
-            true => Some(self.md5(rel).await?),
+            true => match self.md5(rel).await {
+                Ok(digest) => Some(digest),
+                Err(SyncError::Io(e)) if e.kind() == io::ErrorKind::NotFound => {
+                    local = None;
+                    None
+                }
+                Err(e) => return Err(e),
+            },
             false => None,
         };
         let local_side = local.map_or(Side::Absent, |l| l.side(md5));
@@ -694,7 +718,11 @@ impl FolderSync {
             base_side.as_ref(),
             self.pair.direction,
         );
-        Ok(v.keep_dirs(rel, action))
+        let action = v.keep_dirs(rel, action);
+        if action == Action::TrashRemote && self.keep_cloud_copy() {
+            return Ok(Action::Nothing);
+        }
+        Ok(action)
     }
 
     /// Aplica `action` a um caminho.
@@ -714,7 +742,14 @@ impl FolderSync {
                 let (l, r) = (local.expect("lado local"), remote.expect("lado do Drive"));
                 self.put(rel, &r.id.0, l, r.md5)?;
             }
-            Action::ForgetBase => self.forget(v, rel)?,
+            Action::ForgetBase => {
+                if let Some(b) = v.bases.get(rel) {
+                    let _ = self.store.remove_activity_by_item(&b.item_id.0);
+                }
+                let local_prefix = self.pair.local.join(rel).display().to_string();
+                let _ = self.store.remove_activity_by_local_prefix(&local_prefix);
+                self.forget(v, rel)?;
+            }
             Action::Upload => {
                 let existing = remote.as_ref().map(|r| r.id.0.as_str());
                 let (r, sent) = self.upload(v, rel, existing, to_remote(last(rel))).await?;
@@ -806,6 +841,20 @@ impl FolderSync {
                     Err(gdl_drive::client::DriveError::NotFound) => {}
                     Err(e) => return Err(e.into()),
                 }
+                if self.client.is_real_drive() && !self.keep_cloud_copy() {
+                    for (r_rel, r_item) in &v.remotes {
+                        if inside(r_rel, rel) {
+                            let _ = self.client.delete_file(&r_item.id.0).await;
+                            let _ = self.store.remove_item(&r_item.id);
+                            let _ = self.store.remove_activity_by_item(&r_item.id.0);
+                        }
+                    }
+                    let _ = self.client.delete_file(&id).await;
+                    let _ = self.store.remove_item(&ItemId(id.clone()));
+                }
+                let _ = self.store.remove_activity_by_item(&id);
+                let local_prefix = self.pair.local.join(rel).display().to_string();
+                let _ = self.store.remove_activity_by_local_prefix(&local_prefix);
                 self.forget(v, rel)?;
             }
             Action::TrashLocal => {
@@ -2159,6 +2208,42 @@ mod tests {
         assert!(
             w.local.join("excluir/segredo.txt").exists(),
             "continua intacta no computador"
+        );
+    }
+
+    #[tokio::test]
+    async fn keep_cloud_copy_on_delete_preserves_remote_file_until_disabled() {
+        let w = World::new().await;
+        w.write("arquivo.bin", b"conteudo");
+        w.reconcile().await;
+        assert_eq!(w.fake.find_live("arquivo.bin").len(), 1);
+        assert_eq!(w.store.activity_history(10).unwrap().len(), 1);
+
+        std::fs::remove_file(w.local.join("arquivo.bin")).unwrap();
+
+        let sync = w.sync_with(8).with_keep_cloud_copy(true);
+        w.refresh().await;
+        sync.reconcile().await.unwrap();
+        assert_eq!(
+            w.fake.find_live("arquivo.bin").len(),
+            1,
+            "com KeepCloudCopyOnDelete ativo, o arquivo permanece no Drive"
+        );
+        assert!(
+            !w.local.join("arquivo.bin").exists(),
+            "e não é baixado de volta para o computador"
+        );
+
+        sync.set_keep_cloud_copy(false);
+        w.refresh().await;
+        sync.reconcile().await.unwrap();
+        assert!(
+            w.fake.find_live("arquivo.bin").is_empty(),
+            "com KeepCloudCopyOnDelete desativado, a exclusão local reflete no Drive"
+        );
+        assert!(
+            w.store.activity_history(10).unwrap().is_empty(),
+            "e o histórico de atividade do arquivo excluído é limpo"
         );
     }
 }

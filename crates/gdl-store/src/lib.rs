@@ -1168,6 +1168,52 @@ impl Store {
         }
         Ok(out)
     }
+
+    /// Remove registros do histórico de atividade associados a um `item_id`.
+    pub fn remove_activity_by_item(&self, item_id: &str) -> Result<()> {
+        if item_id.is_empty() {
+            return Ok(());
+        }
+        self.conn().execute(
+            "DELETE FROM activity_history WHERE item_id = ?1",
+            params![item_id],
+        )?;
+        Ok(())
+    }
+
+    /// Remove registros do histórico de atividade cujo caminho local seja `prefix` ou esteja dentro dele.
+    pub fn remove_activity_by_local_prefix(&self, prefix: &str) -> Result<()> {
+        if prefix.is_empty() {
+            return Ok(());
+        }
+        let exact_up = format!("{prefix} -> %");
+        let sub_up = format!("{prefix}/% -> %");
+        let exact_down = format!("% -> {prefix}");
+        let sub_down = format!("% -> {prefix}/%");
+        self.conn().execute(
+            "DELETE FROM activity_history \
+             WHERE path = ?1 OR path LIKE ?2 OR path LIKE ?3 OR path LIKE ?4 OR path LIKE ?5",
+            params![prefix, exact_up, sub_up, exact_down, sub_down],
+        )?;
+        Ok(())
+    }
+
+    /// Todos os IDs de itens sob `root` que estão marcados como `trashed = 1` ou dentro de uma
+    /// subpasta marcada como `trashed = 1`.
+    pub fn trashed_subtree_ids(&self, root: &ItemId) -> Result<Vec<ItemId>> {
+        let conn = self.conn();
+        let mut stmt = conn.prepare_cached(
+            "WITH RECURSIVE tree(id, is_trashed) AS ( \
+                 SELECT id, trashed FROM items WHERE parent = ?1 \
+                 UNION ALL \
+                 SELECT i.id, CASE WHEN tree.is_trashed != 0 OR i.trashed != 0 THEN 1 ELSE 0 END \
+                 FROM items i JOIN tree ON i.parent = tree.id \
+             ) \
+             SELECT id FROM tree WHERE is_trashed != 0",
+        )?;
+        let rows = stmt.query_map(params![root.0], |r| Ok(ItemId(r.get(0)?)))?;
+        Ok(rows.collect::<rusqlite::Result<_>>()?)
+    }
 }
 
 /// Estados de um item com edição local que ainda não está no Drive.

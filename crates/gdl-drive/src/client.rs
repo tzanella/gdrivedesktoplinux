@@ -740,6 +740,23 @@ impl DriveClient {
             .await
     }
 
+    /// Verdadeiro quando o cliente aponta para a API oficial do Google Drive (não o servidor simulado).
+    pub fn is_real_drive(&self) -> bool {
+        self.base.host_str() == Some("www.googleapis.com")
+    }
+
+    /// Apaga definitivamente um arquivo ou pasta do Google Drive (`DELETE /drive/v3/files/{id}`).
+    pub async fn delete_file(&self, id: &str) -> Result<()> {
+        let url = self.file_api(id);
+        match self
+            .call(|| self.http.delete(url.clone()), |_resp| async move { Ok(()) })
+            .await
+        {
+            Ok(()) | Err(DriveError::NotFound) => Ok(()),
+            Err(e) => Err(e),
+        }
+    }
+
     /// Os Drives compartilhados de que a conta é membro.
     pub async fn drives(&self) -> Result<Vec<SharedDrive>> {
         #[derive(Deserialize)]

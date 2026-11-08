@@ -172,6 +172,12 @@ impl Runners {
         }
     }
 
+    pub(super) fn set_keep_cloud_copy(&self, on: bool) {
+        for (sync, ..) in self.lock().values() {
+            sync.set_keep_cloud_copy(on);
+        }
+    }
+
     pub(super) fn set_excluded_folders(&self, paths: Vec<PathBuf>) {
         for (sync, ..) in self.lock().values() {
             sync.set_excluded_folders(paths.clone());
@@ -262,6 +268,7 @@ impl Daemon {
             self.i18n.tr("conflict-word", &[]),
         )
         .with_ignore_node_modules(prefs.ignore_node_modules)
+        .with_keep_cloud_copy(prefs.keep_cloud_copy_on_delete)
         .with_excluded_folders(excluded);
         if kind == PairKind::Mirror {
             sync = sync.with_links(Links {
@@ -864,6 +871,47 @@ impl Daemon {
                     .await;
                 if let Ok(m) = moved {
                     let _ = remember(engine, m);
+                }
+            }
+
+            if !self.prefs().keep_cloud_copy_on_delete {
+                if let Ok(trashed_ids) = store.trashed_subtree_ids(&pair.remote_id) {
+                    for tid in trashed_ids {
+                        if client.is_real_drive() {
+                            let _ = client.delete_file(&tid.0).await;
+                        }
+                        let _ = store.remove_item(&tid);
+                        let _ = store.remove_activity_by_item(&tid.0);
+                    }
+                }
+                if let Ok(records) = store.activity_history(500) {
+                    let prefix_up = format!("{}/", pair.local.display());
+                    let mut cleaned = false;
+                    for rec in records {
+                        let local_file = rec
+                            .path
+                            .split_once(" -> ")
+                            .map(|(left, right)| {
+                                if left.starts_with(&prefix_up) {
+                                    left
+                                } else {
+                                    right
+                                }
+                            })
+                            .unwrap_or(&rec.path);
+                        if local_file.starts_with(&prefix_up) && !Path::new(local_file).exists() {
+                            if client.is_real_drive() && !rec.item_id.is_empty() {
+                                let _ = client.delete_file(&rec.item_id).await;
+                                let _ = store.remove_item(&ItemId(rec.item_id.clone()));
+                            }
+                            let _ = store.remove_activity_by_item(&rec.item_id);
+                            let _ = store.remove_activity_by_local_prefix(local_file);
+                            cleaned = true;
+                        }
+                    }
+                    if cleaned {
+                        self.emit_activity_changed().await;
+                    }
                 }
             }
         }

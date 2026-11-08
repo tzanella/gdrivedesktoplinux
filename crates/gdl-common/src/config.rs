@@ -121,6 +121,7 @@ preferences! {
     "DoNotShowNotifications" => do_not_show_notifications: Vec<String> = Vec::new();
     "ExcludedFolders" => excluded_folders: Vec<String> = Vec::new();
     "IgnoreNodeModules" => ignore_node_modules: bool = false;
+    "KeepCloudCopyOnDelete" => keep_cloud_copy_on_delete: bool = false;
     "MinFreeDiskSpaceKBytes" => min_free_disk_space_kbytes: u64 = 512_000;
     "OpenOfficeFilesInDocs" => open_office_files_in_docs: bool = true;
     "PauseSyncingOnMeteredConnection" => pause_syncing_on_metered_connection: bool = false;
