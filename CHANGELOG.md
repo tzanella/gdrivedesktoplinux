@@ -7,6 +7,19 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), e
 
 ## [Não lançado]
 
+## [1.3.1] - 2026-11-08
+
+Versão 1.3.1 com carregamento instantâneo e fluido na aba "Compartilhados comigo", sincronização de exclusões locais para a nuvem com opção configurável ("Manter cópia na nuvem"), ajuste responsivo do menu de opções ("⋮") e atualização dos fluxos de CI/Release e capturas de tela.
+
+### Adicionado
+- **Carregamento fluido estilo Google na aba "Compartilhados comigo":** ao alternar para "Compartilhados comigo" (e entre visões da janela principal), a aba muda instantaneamente exibindo barra de progresso indeterminada nas 4 cores do Google, spinner circular, vetores animados e linhas skeleton com efeito shimmer até a chegada dos dados.
+- **Opção "Manter cópia na nuvem ao excluir arquivos localmente" (`KeepCloudCopyOnDelete`):** nova opção nas Preferências ("Meu computador" e "Configurações › Sistema"). Quando desativada (padrão), arquivos e pastas deletados localmente também são removidos definitivamente da nuvem e do histórico de atividade; quando ativada, os arquivos excluídos no computador permanecem preservados no Google Drive sem serem baixados novamente.
+- **Automação aprimorada de CI e Release (`.github/workflows`):** cache de compilação Rust (`Swatinem/rust-cache@v2`), controle de concorrência e publicação automatizada para tags `v*` e branches de versão `1.*`.
+
+### Corrigido
+- **Responsividade do menu de três pontos ("Mais opções"):** ajuste de altura máxima (`max-height`), rolagem automática (`overflow-y: auto`), espaçamento compacto e posicionamento inteligente dentro dos limites da janela para evitar corte de opções (como *Preferências*, *Sobre* e *Sair*) em resoluções menores.
+- **Limpeza de itens e subpastas excluídos localmente:** remoção completa no Google Drive e limpeza de entradas órfãs na lista "Atividade de sincronização" ao excluir pastas/arquivos sincronizados.
+
 ## [1.3.0-beta] - 2026-11-08
 
 Nova versão com interface renovada no padrão Material 3 / Google Drive, sistema de atualização integrada com assinatura criptográfica ("Atualizar agora"), exclusão seletiva de subpastas sincronizadas e correções visuais globais.

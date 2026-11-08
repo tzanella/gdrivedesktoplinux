@@ -4,6 +4,10 @@ on:
   push:
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 # As bibliotecas da janela (os pré-requisitos do Tauri 2 para Debian/Ubuntu e a libdbus do tao),
 # o FUSE 3 da montagem e o desktop-file-validate do teste de instalação.
 env:
@@ -23,6 +27,7 @@ jobs:
           sudo chmod 666 /dev/fuse
       # Lê a versão e os componentes do rust-toolchain.toml (fonte única) e já faz cache.
       - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - uses: Swatinem/rust-cache@v2
       - name: Formatação
         run: cargo fmt --all --check
       - name: Clippy
@@ -53,8 +58,14 @@ jobs:
           sudo apt-get install -y $SYSTEM_DEPS webkit2gtk-driver xvfb openbox xdotool
           sudo chmod 666 /dev/fuse
       - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - uses: Swatinem/rust-cache@v2
+      - name: Cache do tauri-driver
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/tauri-driver
+          key: tauri-driver-2.1.0
       - name: tauri-driver
-        run: cargo install tauri-driver --locked --version 2.1.0
+        run: command -v tauri-driver >/dev/null || cargo install tauri-driver --locked --version 2.1.0
       - name: Ponta a ponta
         run: ./scripts/e2e.sh
 
