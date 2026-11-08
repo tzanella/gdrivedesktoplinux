@@ -415,16 +415,20 @@ select:disabled {
 /* Menus suspensos Material 3. */
 .menu {
   position: fixed;
-  z-index: 10;
+  z-index: 30;
   min-width: 220px;
-  padding: 8px;
+  max-width: calc(100vw - 16px);
+  max-height: calc(100vh - 16px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 6px;
   border-radius: var(--md-shape-medium);
   border: 1px solid var(--md-outline-variant);
   background: var(--md-surface-elevated);
   box-shadow: var(--md-shadow-lg);
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
   transform-origin: top right;
   animation: m3-pop-in var(--md-duration-fast) var(--md-ease-emphasized);
 }
@@ -433,8 +437,9 @@ select:disabled {
   justify-content: flex-start;
   border-radius: var(--md-shape-small);
   text-align: left;
-  padding: 9px 14px;
-  min-height: 38px;
+  padding: 6px 12px;
+  min-height: 32px;
+  flex: none;
   color: var(--md-on-surface);
   font: var(--md-body-medium);
   width: 100%;
@@ -447,7 +452,8 @@ select:disabled {
 .menu hr {
   border: none;
   border-top: 1px solid var(--md-outline-variant);
-  margin: 6px 0;
+  margin: 4px 0;
+  flex: none;
   width: 100%;
 }
 
@@ -538,6 +544,13 @@ select:disabled {
   padding-top: 10px;
 }
 
+.pager select {
+  padding: 4px 10px;
+  height: 34px;
+  font: var(--md-body-medium);
+  border-radius: var(--md-shape-small);
+}
+
 /* Pastas do computador e dispositivos. */
 .local-folders,
 .devices {
@@ -624,7 +637,147 @@ select:disabled {
     g-colors 2.4s ease-in-out 2;
 }
 
+/* Estado de carregamento fluido estilo Google Drive (barra 4 cores + spinner + skeleton). */
+.view-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 4px 0 12px;
+  animation: m3-fade-up var(--md-duration-fast) var(--md-ease-standard);
+}
+
+.g-progress-bar {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  border-radius: var(--md-shape-full);
+  overflow: hidden;
+  background: var(--md-surface-container-high);
+}
+
+.g-progress-bar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 55%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    var(--g-blue) 0%,
+    var(--g-red) 33%,
+    var(--g-yellow) 66%,
+    var(--g-green) 100%
+  );
+  animation: g-indeterminate 1.25s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.view-loading-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 12px 16px 4px;
+  color: var(--md-on-surface-variant);
+  font: var(--md-body-medium);
+}
+
+.view-loading .g-spinner {
+  width: 28px;
+  height: 28px;
+  animation: g-spin 1.1s linear infinite;
+}
+
+.view-loading .g-spinner circle {
+  animation:
+    g-dash 1.2s ease-in-out infinite,
+    g-colors 2.4s ease-in-out infinite;
+}
+
+.g-skeleton-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.g-skeleton-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 10px;
+  border-radius: var(--md-shape-small);
+  border-bottom: 1px solid var(--md-outline-variant);
+}
+
+.g-skeleton-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.g-skeleton-line,
+.g-skeleton-pill {
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    var(--md-surface-container) 25%,
+    var(--md-surface-container-high) 50%,
+    var(--md-surface-container) 75%
+  );
+  background-size: 200% 100%;
+  animation: g-shimmer 1.3s ease-in-out infinite;
+}
+
+.g-skeleton-line.primary {
+  width: 48%;
+  height: 14px;
+}
+
+.g-skeleton-line.secondary {
+  width: 32%;
+  height: 11px;
+  opacity: 0.75;
+}
+
+.g-skeleton-line.w-wide {
+  width: 58%;
+}
+
+.g-skeleton-line.w-mid {
+  width: 38%;
+}
+
+.g-skeleton-line.w-short {
+  width: 24%;
+}
+
+.g-skeleton-actions {
+  display: flex;
+  gap: 8px;
+  flex: none;
+}
+
+.g-skeleton-pill {
+  width: 84px;
+  height: 28px;
+  border-radius: var(--md-shape-full);
+}
+
 /* Animações Material 3. */
+@keyframes g-indeterminate {
+  0% {
+    transform: translateX(-110%) scaleX(0.7);
+  }
+  50% {
+    transform: translateX(35%) scaleX(1);
+  }
+  100% {
+    transform: translateX(200%) scaleX(0.7);
+  }
+}
+
 @keyframes m3-fade-up {
   from {
     opacity: 0;

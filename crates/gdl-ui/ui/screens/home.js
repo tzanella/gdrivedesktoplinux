@@ -1,7 +1,7 @@
 // Janela principal: cabeçalho com o estado da sincronização, menu da conta, "Mais opções", o menu
 // lateral com as visões e a área da visão escolhida. Atualiza com os eventos da ponte.
 
-import { attempt, el, googleHeroShapes, icon, statusGraphic, stylesheet, toast } from '../components.js';
+import { attempt, el, googleHeroShapes, googleViewLoader, icon, statusGraphic, stylesheet, toast } from '../components.js';
 import { accountButton, accountMenu } from './home/account.js';
 import { headerFor, shownStatus, withoutAccount } from './home/model.js';
 import { moreMenu, runArg } from './home/more.js';
@@ -231,11 +231,12 @@ function togglePause() {
 }
 
 function show(name) {
+  const switching = home.view !== name;
   home.view = name;
-  showView();
+  showView(switching);
 }
 
-async function showView() {
+async function showView(switching = false) {
   const { t, api } = home.ctx;
   for (const button of ui.nav.querySelectorAll('button')) {
     button.classList.toggle('active', button.dataset.view === home.view);
@@ -257,6 +258,9 @@ async function showView() {
     return;
   }
   const view = home.view;
+  if (switching || !ui.main.childNodes.length) {
+    ui.main.replaceChildren(googleViewLoader(t(`view-${view}`)));
+  }
   try {
     const content = await VIEWS[view].render(context());
     // Outra visão pode ter sido escolhida enquanto esta carregava.

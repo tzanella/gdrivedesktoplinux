@@ -194,6 +194,42 @@ export function googleHeroShapes() {
   );
 }
 
+// Estado de carregamento fluido estilo Google (barra 4 cores + spinner + formas + linhas skeleton).
+export function googleViewLoader(label = '') {
+  const row = (w1, w2) =>
+    el(
+      'div',
+      { class: 'g-skeleton-row' },
+      el(
+        'div',
+        { class: 'g-skeleton-lines' },
+        el('div', { class: `g-skeleton-line primary ${w1}` }),
+        el('div', { class: `g-skeleton-line secondary ${w2}` }),
+      ),
+      el('div', { class: 'g-skeleton-actions' }, el('div', { class: 'g-skeleton-pill' })),
+    );
+  return el(
+    'div',
+    { class: 'view-loading', role: 'status', 'aria-live': 'polite' },
+    el('div', { class: 'g-progress-bar', 'aria-hidden': 'true' }),
+    el(
+      'div',
+      { class: 'view-loading-header' },
+      googleSpinner(),
+      googleHeroShapes(),
+      label ? el('span', {}, label) : [],
+    ),
+    el(
+      'div',
+      { class: 'g-skeleton-list', 'aria-hidden': 'true' },
+      row('w-wide', 'w-mid'),
+      row('w-mid', 'w-short'),
+      row('w-wide', 'w-short'),
+      row('w-mid', 'w-mid'),
+    ),
+  );
+}
+
 // Uma caixa de seleção ou opção com o texto ao lado (`.choice`).
 export function choice(input, ...content) {
   return el('label', { class: 'choice' }, input, el('span', {}, ...content));
@@ -264,9 +300,16 @@ export function popupMenu(anchor, items) {
   const menu = el('div', { class: 'menu', role: 'menu' });
   const place = () => {
     const box = anchor.getBoundingClientRect();
-    const left = Math.min(box.left, window.innerWidth - menu.offsetWidth - 8);
-    menu.style.left = `${Math.max(8, left)}px`;
-    menu.style.top = `${box.bottom + 4}px`;
+    const margin = 8;
+    const availBelow = window.innerHeight - box.bottom - margin - 4;
+    const availAbove = box.top - margin - 4;
+    const maxH = Math.max(160, Math.min(window.innerHeight - margin * 2, Math.max(availBelow, availAbove)));
+    menu.style.maxHeight = `${maxH}px`;
+    const left = Math.min(box.left, window.innerWidth - menu.offsetWidth - margin);
+    menu.style.left = `${Math.max(margin, left)}px`;
+    const desiredTop = box.bottom + 4;
+    const clampedTop = Math.min(desiredTop, window.innerHeight - menu.offsetHeight - margin);
+    menu.style.top = `${Math.max(margin, clampedTop)}px`;
   };
   const resized = new ResizeObserver(place);
   const close = () => {
