@@ -17,8 +17,10 @@ não tem ligação com o Google nem é aprovado por ele.
 - Com as APIs do Google Drive e do login do Google, usando o Client ID que **você** criou no seu
   projeto do Google Cloud (veja o [guia do Client ID](guia-client-id.md)).
 - Uma vez por dia, com a API pública do GitHub, só para saber qual é a última versão do app
-  (`api.github.com/repos/junior9283/gdrive-desktop-linux/releases/latest`). O pedido leva apenas a
-  versão instalada, no cabeçalho de identificação; nenhum dado seu nem dos seus arquivos.
+  (`api.github.com/repos/tzanella/gdrive-desktop-linux/releases/latest`). O pedido leva apenas a
+  versão instalada, no cabeçalho de identificação; nenhum dado seu nem dos seus arquivos. Se você
+  clicar em **Atualizar agora**, o app baixa do GitHub o pacote da versão nova e a assinatura dele,
+  confere os dois no seu computador e instala.
 
 O projeto não tem servidores próprios e não recebe nenhum dado seu.
 

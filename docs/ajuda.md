@@ -73,7 +73,7 @@ ignorá-lo ou desligar a pergunta.
 - **Drives compartilhados:** abrir cada drive na pasta ou na web.
 - **Notificações:** o histórico dos avisos.
 - **Mais opções:** arquivos off-line, lista de erros, preferências, Drives compartilhados,
-  desconectar todas as contas e sair.
+  Sobre (com **Atualizar agora** quando há versão nova), desconectar todas as contas e sair.
 - **Preferências:** as abas **Meu computador** e **Google Drive**; as demais configurações ficam
   atrás da engrenagem.
 

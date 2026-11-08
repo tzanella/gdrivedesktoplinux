@@ -4,8 +4,8 @@
 
 # gdrive-desktop-linux
 
-![Versão](https://img.shields.io/badge/vers%C3%A3o-1.2.5--rev2-blue)
-![Situação](https://img.shields.io/badge/situa%C3%A7%C3%A3o-est%C3%A1vel-brightgreen)
+![Versão](https://img.shields.io/badge/vers%C3%A3o-1.3.0--beta-blue)
+![Situação](https://img.shields.io/badge/situa%C3%A7%C3%A3o-beta-brightgreen)
 ![Licença](https://img.shields.io/badge/licen%C3%A7a-GPL--3.0-green)
 ![Linguagem](https://img.shields.io/badge/Rust-%E2%9C%93-b7410e)
 
@@ -44,7 +44,7 @@ Este projeto quer preencher essa lacuna com um app **nativo de Linux**, feito do
 | **Miniaturas** | ✅ As imagens aparecem com miniatura no Dolphin e em outros gerenciadores, usando as miniaturas do próprio Google, sem baixar os arquivos. |
 | **Menu do botão direito** | ✅ Abrir no navegador, copiar link (com o aviso de quem pode abrir), adicionar atalho ao Drive, sincronizar uma pasta do computador, off-line / só on-line, novo Documento, Planilha ou Apresentação, atualizar e lixeira, no Dolphin, Nautilus, Nemo, Caja, Thunar e COSMIC Files. |
 | **Compartilhar e versões** | ✅ Pelo menu do botão direito: janela Compartilhar (pessoas, papéis, acesso geral e link), Gerenciar versões (baixar, restaurar, manter para sempre) e arquivos do Office abertos no Docs, Planilhas ou Apresentações. |
-| **Instalação e remoção** | ✅ Pacotes `.deb`, `.rpm`, Arch e `.tar.gz`, e um desinstalador com a opção de apagar também os dados do computador. |
+| **Instalação, atualização e remoção** | ✅ Pacotes `.deb`, `.rpm`, Arch, `.flatpak` e `.tar.gz`, atualização pelo próprio app (confere a assinatura do projeto, instala e reinicia) e um desinstalador com a opção de apagar também os dados do computador. |
 | **Ícones de status** | ✅ Na nuvem, off-line, sincronizando, em conflito e com erro, no Dolphin, também nas pastas do computador sincronizadas. A pasta do Drive fica fora do indexador do KDE (Baloo), que baixaria tudo para ler. |
 | **Backup e espelho** | ✅ Pastas do computador sincronizadas com "Computadores" no Drive, o Meu Drive em modo Espelho (cópia completa numa pasta comum, com a troca de volta para o Stream) e backup de pendrives e cartões de memória quando são conectados. |
 | **Contas** | ✅ Até 4 contas Google ao mesmo tempo, cada uma com a própria pasta (que pode ser mudada), trocadas pelo menu da conta. |
@@ -144,9 +144,12 @@ o arquivo da sua distribuição (64 bits, x86_64):
 | Ubuntu 22.04+, Debian 12+, Mint, Pop!_OS | `.deb` | `sudo apt install ./gdrive-desktop-linux_*.deb` |
 | Fedora, Nobara, openSUSE | `.rpm` | `sudo dnf install ./gdrive-desktop-linux-*.rpm` (openSUSE: `sudo zypper install --allow-unsigned-rpm ./…rpm`) |
 | Arch, Manjaro, EndeavourOS, CachyOS | `.pkg.tar.zst` | `sudo pacman -U ./gdrive-desktop-linux-*.pkg.tar.zst` |
+| Flatpak (qualquer distribuição) | `.flatpak` | `flatpak install --user ./gdrive-desktop-linux-*.flatpak` |
 | Qualquer outra | `.tar.gz` | instale o FUSE 3 e o WebKitGTK 4.1 da distribuição; depois `tar -xzf gdrive-desktop-linux-*.tar.gz` e `./gdrive-desktop-linux-*/install.sh` (instala em `~/.local`, sem root) |
 
-O `SHA256SUMS` do release confere os arquivos baixados (`sha256sum -c --ignore-missing SHA256SUMS`).
+O `SHA256SUMS` do release confere os arquivos baixados (`sha256sum -c --ignore-missing SHA256SUMS`), e o `SHA256SUMS.minisig` confere que o `SHA256SUMS` foi assinado pelo projeto (`minisign -Vm SHA256SUMS -P RWRno1ThiriVL29Enbhi5Bip6NzWREAS8tnXWHAd9jx7bS1JF1V5okTK`).
+
+Quando sai uma versão nova, o próprio app avisa e oferece **Atualizar agora** (na notificação, no menu da bandeja e em Mais opções › Sobre): ele baixa o pacote do seu formato, confere a assinatura e o SHA-256, instala (nos pacotes do sistema, pede a senha de administrador) e reinicia na versão nova.
 
 <details>
 <summary>Ou compilar o código</summary>
@@ -276,7 +279,8 @@ Cada etapa sai funcionando antes da próxima.
 | 0.11 | Últimos itens da janela, da bandeja e das Preferências; tour de boas-vindas; limites do Drive com mensagem própria |
 | 1.0 | Paridade com a versão Windows, item a item na [matriz de paridade](docs/paridade.md) |
 | 1.1 | Pendências da 1.0: corridas raras corrigidas e emblema de erro nas pastas do computador |
-| 1.2 | Robustez: a desmontagem, a troca de pasta e os avisos não esperam sem fim; erros de permissão nas pastas do computador com texto próprio ← **estamos aqui** |
+| 1.2 | Robustez: a desmontagem, a troca de pasta e os avisos não esperam sem fim; erros de permissão nas pastas do computador com texto próprio |
+| 1.3-beta | Interface renovada no padrão Material 3 / Google Drive com vetores animados, atualização pelo próprio app com verificação de assinatura (`minisign`), exclusão seletiva de subpastas e pacote Flatpak ← **estamos aqui** |
 
 ## Versionamento
 

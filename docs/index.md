@@ -28,7 +28,7 @@ dado seu. Ele não tem ligação com o Google nem é aprovado por ele.
 - [Política de Privacidade](politica-de-privacidade.md)
 - [Termos de uso](termos-de-uso.md)
 - [Guia do Client ID](guia-client-id.md)
-- [Ajuda](ajuda.md) · [Perguntas frequentes](perguntas-frequentes.md)
+- [Ajuda](ajuda.md) · [Perguntas frequentes](perguntas-frequentes.md) · [Flatpak / Flathub](flathub.md)
 
 > **English:** gdrive-desktop-linux is an unofficial, open-source (GPL-3.0) Google Drive desktop
 > client for Linux. It runs entirely on your computer and talks to Google's APIs, with an OAuth
