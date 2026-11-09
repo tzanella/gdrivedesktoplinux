@@ -26,10 +26,16 @@
     </ul>
   </description>
 
-  <url type="homepage">https://github.com/tzanella/gdrive-desktop-linux</url>
-  <url type="bugtracker">https://github.com/tzanella/gdrive-desktop-linux/issues</url>
-  <url type="help">https://github.com/tzanella/gdrive-desktop-linux/blob/main/docs/ajuda.md</url>
-  <url type="vcs-browser">https://github.com/tzanella/gdrive-desktop-linux</url>
+  <url type="homepage">https://github.com/tzanella/gdrivedesktoplinux</url>
+  <url type="bugtracker">https://github.com/tzanella/gdrivedesktoplinux/issues</url>
+  <url type="help">https://tzanella.github.io/gdrivedesktoplinux/docs/</url>
+  <url type="vcs-browser">https://github.com/tzanella/gdrivedesktoplinux</url>
+
+  <categories>
+    <category>Network</category>
+    <category>FileTransfer</category>
+    <category>Utility</category>
+  </categories>
 
   <branding>
     <color type="primary" scheme_preference="light">#d3e3fd</color>
@@ -39,15 +45,15 @@
   <screenshots>
     <screenshot type="default">
       <caption>Janela principal com o status da sincronização e cartões de acesso rápido</caption>
-      <image>https://raw.githubusercontent.com/tzanella/gdrive-desktop-linux/main/docs/imagens/inicio.png</image>
+      <image>https://raw.githubusercontent.com/tzanella/gdrivedesktoplinux/main/docs/imagens/janela-principal.png</image>
     </screenshot>
     <screenshot>
       <caption>Preferências de pastas do computador e exclusão de subpastas</caption>
-      <image>https://raw.githubusercontent.com/tzanella/gdrive-desktop-linux/main/docs/imagens/preferencias-computador.png</image>
+      <image>https://raw.githubusercontent.com/tzanella/gdrivedesktoplinux/main/docs/imagens/meu-computador.png</image>
     </screenshot>
     <screenshot>
       <caption>Tela Sobre com verificação e atualização automática</caption>
-      <image>https://raw.githubusercontent.com/tzanella/gdrive-desktop-linux/main/docs/imagens/sobre.png</image>
+      <image>https://raw.githubusercontent.com/tzanella/gdrivedesktoplinux/main/docs/imagens/sobre.png</image>
     </screenshot>
   </screenshots>
 
